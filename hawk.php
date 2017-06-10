@@ -23,7 +23,7 @@ class HawkErrorManager
             "error_context" => $errcontext,
             "debug_backtrace" => debug_backtrace(),
             'http_params' => array(
-                'HTTP_REFERER' => $_SERVER['HTTP_REFERER'],
+                'HTTP_REFERER' => isset($_SERVER['HTTP_REFERER'])?$_SERVER['HTTP_REFERER']:'',
                 'REQUEST_METHOD' => $_SERVER['REQUEST_METHOD'],
                 'REQUEST_TIME' => $_SERVER['REQUEST_TIME'],
                 'QUERY_STRING' => $_SERVER['QUERY_STRING'],
