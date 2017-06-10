@@ -45,6 +45,11 @@ class HawkErrorManager
         HawkErrorManager::Log(E_ERROR, $exception->getMessage(), $exception->getFile(), $exception->getLine(), []);
     }
 
+    # Simplified custom exception sender
+    public static function sendCustomException($message, $data="", $type=E_USER_WARNING) {
+        HawkErrorManager::Log($type, $message, '', '', $data);
+    }
+
     /*******************/
     /* Private section */
     /*******************/
