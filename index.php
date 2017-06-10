@@ -3,9 +3,8 @@
     HawkErrorManager::init();
 
     echo "Script started";
-    $a = 1 / 0;
-//    $b = str_replace('test', 'test');
 
-//    throw new Exception('Exception');
+    $a = 1 / 0;
+
     echo "Script finished";
 ?>

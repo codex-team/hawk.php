@@ -1,5 +1,7 @@
 <?php
 
+# You have to define API URL and aceess token, which can be got from official website
+
 return array(
     "api_url" => "",
     "access_token" => ""
