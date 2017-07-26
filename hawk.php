@@ -1,18 +1,54 @@
 <?php
 
-require_once("config.php");
+namespace Hawk;
 
-
+/**
+ * Hawk PHP catcher
+ * Singleton Pattern
+ *
+ * @copyright Codex Team
+ * @example https://hawk.so/docs#add-server-handler
+ */
 class HawkErrorManager
 {
-    # Define error handlers and load configuration
-    public static function init() {
-        set_error_handler(array('HawkErrorManager', 'Log'), E_ALL);
-        set_exception_handler(array('HawkErrorManager', 'LogException'));
-        error_reporting(E_ALL | E_STRICT);
+    private static $_instance;
+
+    /**
+     * @param $_url [String] - hawk server catcher URL
+     */
+    private static $_url = 'https://hawk.so/catcher/php';
+
+    /**
+     * @param $_accessToken [String] - project access token. Generated on https://hawk.so
+     */
+    private static $_accessToken;
+
+    /**
+     * Define error handlers
+     */
+    private function __construct($accessToken) {
+      self::$_accessToken = $accessToken;
+
+      set_error_handler(array('\Hawk\HawkErrorManager', 'Log'), E_ALL);
+      set_exception_handler(array('\Hawk\HawkErrorManager', 'LogException'));
+      error_reporting(E_ALL | E_STRICT);
     }
 
-    # Construct logs package and send them to service with access token
+    private function __clone() {
+    }
+
+    static public function instance($accessToken) {
+
+      if (!self::$_instance) {
+        self::$_instance = new self($accessToken);
+      }
+
+      return self::$_instance;
+    }
+
+    /**
+     * Construct logs package and send them to service with access token
+     */
     public static function Log($errno, $errstr, $errfile, $errline, $errcontext) {
 
         $data = array(
@@ -23,7 +59,7 @@ class HawkErrorManager
             "error_context" => $errcontext,
             "debug_backtrace" => debug_backtrace(),
             'http_params' => array(
-                'HTTP_REFERER' => isset($_SERVER['HTTP_REFERER'])?$_SERVER['HTTP_REFERER']:'',
+                'HTTP_REFERER' => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '',
                 'REQUEST_METHOD' => $_SERVER['REQUEST_METHOD'],
                 'REQUEST_TIME' => $_SERVER['REQUEST_TIME'],
                 'QUERY_STRING' => $_SERVER['QUERY_STRING'],
@@ -32,32 +68,26 @@ class HawkErrorManager
                 'REQUEST_URI' => $_SERVER['REQUEST_URI']
             ),
 
-            # Access token obtained from official website
-            "access_token" => HawkConfig::$ACCESS_TOKEN
+            // Access token obtained from official website
+            "access_token" => self::$_accessToken
         );
 
-        HawkErrorManager::send($data);
-
+        self::send($data);
     }
 
-    # Construct Exceptions and send them to Logs
-    public static function LogException($exception) {
-        HawkErrorManager::Log(E_ERROR, $exception->getMessage(), $exception->getFile(), $exception->getLine(), []);
+    /**
+     * Construct Exceptions and send them to Logs
+     */
+    static private function LogException($exception) {
+        $this->Log(E_ERROR, $exception->getMessage(), $exception->getFile(), $exception->getLine(), []);
     }
 
-    # Simplified custom exception sender
-    public static function sendCustomException($message, $data="", $type=E_USER_WARNING) {
-        HawkErrorManager::Log($type, $message, '', '', $data);
-    }
-
-    /*******************/
-    /* Private section */
-    /*******************/
-
-    # Send package to service defined by api_url from settings
+    /**
+     * Send package to service defined by api_url from settings
+     */
     private static function send($package) {
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, HawkConfig::$API_URL);
+        curl_setopt($ch, CURLOPT_URL, self::$_url);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($package));
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
@@ -65,5 +95,5 @@ class HawkErrorManager
         $server_output = curl_exec ($ch);
         curl_close ($ch);
     }
-}
 
+}
