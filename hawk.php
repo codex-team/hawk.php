@@ -29,6 +29,7 @@ class HawkErrorManager
     private function __construct($accessToken) {
       self::$_accessToken = $accessToken;
 
+      register_shutdown_function(array('\Hawk\HawkErrorManager', 'checkForFatal') );
       set_error_handler(array('\Hawk\HawkErrorManager', 'Log'), E_ALL);
       set_exception_handler(array('\Hawk\HawkErrorManager', 'LogException'));
       error_reporting(E_ALL | E_STRICT);
@@ -44,6 +45,13 @@ class HawkErrorManager
       }
 
       return self::$_instance;
+    }
+
+    public static function checkForFatal() {
+
+      $error = error_get_last();
+      if ( $error['type'] == E_ERROR )
+          self::Log( $error['type'], $error['message'], $error['file'], $error['line'], '' );
     }
 
     /**
