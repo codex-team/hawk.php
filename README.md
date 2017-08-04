@@ -4,7 +4,7 @@ PHP errors Catcher module for [Hawk.so](https://hawk.so)
 
 ## Usage
 
-Register an account and get a project token.
+[Register](https://hawk.so/join) an account and get a project token.
 
 ### Install module
 

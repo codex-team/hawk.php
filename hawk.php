@@ -3,8 +3,7 @@
 namespace Hawk;
 
 /**
- * Hawk PHP catcher
- * Singleton Pattern
+ * Hawk PHP Catcher
  *
  * @copyright Codex Team
  * @example https://hawk.so/docs#add-server-handler
@@ -75,8 +74,9 @@ class HawkErrorManager
 
       $error = error_get_last();
 
-      if ( $error['type'] == E_ERROR )
+      if ( $error['type'] == E_ERROR ) {
           self::Log($error['type'], $error['message'], $error['file'], $error['line'], []);
+      }
 
     }
 
