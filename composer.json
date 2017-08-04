@@ -1,0 +1,9 @@
+{
+    "name": "codex-team/hawk.php",
+    "description": "PHP errors Catcher module for Hawk.so",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": ">=5.6"
+    }
+}
