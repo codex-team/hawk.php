@@ -9,23 +9,21 @@ namespace Hawk;
  * @copyright Codex Team
  * @example https://hawk.so/docs#add-server-handler
  *
- *        Use namespaces
- *        > use \Hawk\HawkErrorManager;
+ * Use namespaces
+ * > use \Hawk\HawkErrorManager;
  *
- *        Initialize Hawk this way
- *        > HawkErrorManager::instance('abcd1234-1234-abcd-1234-123456abcdef');
+ * Initialize Hawk this way
+ * > HawkErrorManager::instance('abcd1234-1234-abcd-1234-123456abcdef');
  *
- *        Or this way if you want to use custom Hawk server
- *        > HawkErrorManager::instance(
- *        >         'abcd1234-1234-abcd-1234-123456abcdef',
- *        >         'http://myownhawk.coms/catcher/php'
- *        > );
+ * Or this way if you want to use custom Hawk server
+ * > HawkErrorManager::instance(
+ * >         'abcd1234-1234-abcd-1234-123456abcdef',
+ * >         'http://myownhawk.coms/catcher/php'
+ * > );
  *
  */
 class HawkErrorManager
 {
-    private static $_instance;
-
     /**
      * Define error handlers
      */
@@ -40,18 +38,23 @@ class HawkErrorManager
 
     }
 
+    private static $_instance;
+
+    private function __clone () {}
+
     /**
-     * @param $_url [String] - hawk server catcher URL
+     * Default Hawk server catcher URL
      */
     private static $_url = 'https://hawk.so/catcher/php';
 
     /**
-     * @param $_accessToken [String] - project access token. Generated on https://hawk.so
+     * Project access token. Generated on https://hawk.so
      */
     private static $_accessToken;
 
-    private function __clone () {}
-
+    /**
+     * Main instance method
+     */
     public static function instance ($accessToken, $url = '') {
 
       if ($url) {
@@ -78,6 +81,13 @@ class HawkErrorManager
     }
 
     /**
+     * Construct Exceptions and send them to Logs
+     */
+    static public function LogException ($exception) {
+        self::Log(E_ERROR, $exception->getMessage(), $exception->getFile(), $exception->getLine(), []);
+    }
+
+    /**
      * Construct logs package and send them to service with access token
      */
     public static function Log ($errno, $errstr, $errfile, $errline, $errcontext) {
@@ -94,13 +104,6 @@ class HawkErrorManager
         );
 
         self::send($data);
-    }
-
-    /**
-     * Construct Exceptions and send them to Logs
-     */
-    static public function LogException ($exception) {
-        self::Log(E_ERROR, $exception->getMessage(), $exception->getFile(), $exception->getLine(), []);
     }
 
     /**
