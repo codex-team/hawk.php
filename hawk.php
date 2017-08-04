@@ -8,10 +8,37 @@ namespace Hawk;
  *
  * @copyright Codex Team
  * @example https://hawk.so/docs#add-server-handler
+ *
+ *        Use namespaces
+ *        > use \Hawk\HawkErrorManager;
+ *
+ *        Initialize Hawk this way
+ *        > HawkErrorManager::instance('abcd1234-1234-abcd-1234-123456abcdef');
+ *
+ *        Or this way if you want to use custom Hawk server
+ *        > HawkErrorManager::instance(
+ *        >         'abcd1234-1234-abcd-1234-123456abcdef',
+ *        >         'http://myownhawk.coms/catcher/php'
+ *        > );
+ *
  */
 class HawkErrorManager
 {
     private static $_instance;
+
+    /**
+     * Define error handlers
+     */
+    private function __construct ($accessToken) {
+
+      self::$_accessToken = $accessToken;
+
+      register_shutdown_function(array('\Hawk\HawkErrorManager', 'checkForFatal'));
+      set_error_handler(array('\Hawk\HawkErrorManager', 'Log'), E_ALL);
+      set_exception_handler(array('\Hawk\HawkErrorManager', 'LogException'));
+      error_reporting(E_ALL | E_STRICT);
+
+    }
 
     /**
      * @param $_url [String] - hawk server catcher URL
@@ -23,22 +50,13 @@ class HawkErrorManager
      */
     private static $_accessToken;
 
-    /**
-     * Define error handlers
-     */
-    private function __construct($accessToken) {
-      self::$_accessToken = $accessToken;
+    private function __clone () {}
 
-      register_shutdown_function(array('\Hawk\HawkErrorManager', 'checkForFatal') );
-      set_error_handler(array('\Hawk\HawkErrorManager', 'Log'), E_ALL);
-      set_exception_handler(array('\Hawk\HawkErrorManager', 'LogException'));
-      error_reporting(E_ALL | E_STRICT);
-    }
+    public static function instance ($accessToken, $url = '') {
 
-    private function __clone() {
-    }
-
-    static public function instance($accessToken) {
+      if ($url) {
+        self::$_url = $url;
+      }
 
       if (!self::$_instance) {
         self::$_instance = new self($accessToken);
@@ -47,17 +65,22 @@ class HawkErrorManager
       return self::$_instance;
     }
 
-    public static function checkForFatal() {
+    /**
+     * Fatal errors catch method
+     */
+    static public function checkForFatal () {
 
       $error = error_get_last();
+
       if ( $error['type'] == E_ERROR )
-          self::Log( $error['type'], $error['message'], $error['file'], $error['line'], '' );
+          self::Log($error['type'], $error['message'], $error['file'], $error['line'], []);
+
     }
 
     /**
      * Construct logs package and send them to service with access token
      */
-    public static function Log($errno, $errstr, $errfile, $errline, $errcontext) {
+    public static function Log ($errno, $errstr, $errfile, $errline, $errcontext) {
 
         $data = array(
             "error_type" => $errno,
@@ -66,17 +89,7 @@ class HawkErrorManager
             "error_line" => $errline,
             "error_context" => $errcontext,
             "debug_backtrace" => debug_backtrace(),
-            'http_params' => array(
-                'HTTP_REFERER' => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '',
-                'REQUEST_METHOD' => $_SERVER['REQUEST_METHOD'],
-                'REQUEST_TIME' => $_SERVER['REQUEST_TIME'],
-                'QUERY_STRING' => $_SERVER['QUERY_STRING'],
-                'HTTP_USER_AGENT' => $_SERVER['HTTP_USER_AGENT'],
-                'REMOTE_ADDR' => $_SERVER['REMOTE_ADDR'],
-                'REQUEST_URI' => $_SERVER['REQUEST_URI']
-            ),
-
-            // Access token obtained from official website
+            'http_params' => $_SERVER,
             "access_token" => self::$_accessToken
         );
 
@@ -86,22 +99,22 @@ class HawkErrorManager
     /**
      * Construct Exceptions and send them to Logs
      */
-    static private function LogException($exception) {
-        $this->Log(E_ERROR, $exception->getMessage(), $exception->getFile(), $exception->getLine(), []);
+    static public function LogException ($exception) {
+        self::Log(E_ERROR, $exception->getMessage(), $exception->getFile(), $exception->getLine(), []);
     }
 
     /**
      * Send package to service defined by api_url from settings
      */
-    private static function send($package) {
+    private static function send ($package) {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, self::$_url);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($package));
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $server_output = curl_exec ($ch);
-        curl_close ($ch);
+        $server_output = curl_exec($ch);
+        curl_close($ch);
     }
 
 }
