@@ -27,16 +27,17 @@ class HawkErrorManager
      * Define error handlers
      */
     private function __construct ($accessToken) {
+        self::$_accessToken = $accessToken;
 
-      self::$_accessToken = $accessToken;
-
-      register_shutdown_function(array('\Hawk\HawkErrorManager', 'checkForFatal'));
-      set_error_handler(array('\Hawk\HawkErrorManager', 'Log'), E_ALL);
-      set_exception_handler(array('\Hawk\HawkErrorManager', 'LogException'));
-      error_reporting(E_ALL | E_STRICT);
-
+        register_shutdown_function(array('\Hawk\HawkErrorManager', 'checkForFatal'));
+        set_error_handler(array('\Hawk\HawkErrorManager', 'Log'), E_ALL);
+        set_exception_handler(array('\Hawk\HawkErrorManager', 'LogException'));
+        error_reporting(E_ALL | E_STRICT);
     }
 
+    /**
+     * Hawk instance
+     */
     private static $_instance;
 
     /**
@@ -58,29 +59,26 @@ class HawkErrorManager
      * Main instance method
      */
     public static function instance ($accessToken, $url = '') {
+        if ($url) {
+            self::$_url = $url;
+        }
 
-      if ($url) {
-        self::$_url = $url;
-      }
+        if (!self::$_instance) {
+            self::$_instance = new self($accessToken);
+        }
 
-      if (!self::$_instance) {
-        self::$_instance = new self($accessToken);
-      }
-
-      return self::$_instance;
+        return self::$_instance;
     }
 
     /**
      * Fatal errors catch method
      */
     static public function checkForFatal () {
+        $error = error_get_last();
 
-      $error = error_get_last();
-
-      if ( $error['type'] == E_ERROR ) {
-          self::Log($error['type'], $error['message'], $error['file'], $error['line'], []);
-      }
-
+        if ( $error['type'] == E_ERROR ) {
+            self::Log($error['type'], $error['message'], $error['file'], $error['line'], []);
+        }
     }
 
     /**
@@ -94,7 +92,6 @@ class HawkErrorManager
      * Construct logs package and send them to service with access token
      */
     public static function Log ($errno, $errstr, $errfile, $errline, $errcontext) {
-
         $data = array(
             "error_type" => $errno,
             "error_description" => $errstr,
@@ -103,7 +100,9 @@ class HawkErrorManager
             "error_context" => $errcontext,
             "debug_backtrace" => debug_backtrace(),
             'http_params' => $_SERVER,
-            "access_token" => self::$_accessToken
+            "access_token" => self::$_accessToken,
+            "GET" => $_GET,
+            "POST" => $_POST
         );
 
         self::send($data);
