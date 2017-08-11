@@ -39,6 +39,9 @@ class HawkErrorManager
 
     private static $_instance;
 
+    /**
+     * Make __clone private
+     */
     private function __clone () {}
 
     /**
