@@ -41,9 +41,11 @@ class HawkErrorManager
     private static $_instance;
 
     /**
-     * Make __clone private
+     * Set private functions cause Singleton 
      */
     private function __clone () {}
+    private function __sleep () {}
+    private function __wakeup () {}
 
     /**
      * Default Hawk server catcher URL
