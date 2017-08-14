@@ -9,10 +9,6 @@
     },
     "minimum-stability": "dev",
     "autoload": {
-	"classmap": [
-		"src",
-		"src/Hawk.php"
-	]
         "psr-4": {"Hawk\\": "src/"}
     }
 }
