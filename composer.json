@@ -3,12 +3,12 @@
     "description": "PHP errors Catcher module for Hawk.so",
     "type": "library",
     "license": "MIT",
+    "version": "0.5.1",
     "require": {
         "php": ">=5.6"
     },
     "minimum-stability": "dev",
     "autoload": {
         "psr-4": {"Hawk\\": "src/"}
-    },
-    "optimize-autoloader": true
+    }
 }
