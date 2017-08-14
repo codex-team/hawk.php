@@ -9,5 +9,6 @@
     "minimum-stability": "dev",
     "autoload": {
         "psr-4": {"Hawk\\": "src/"}
-    }
+    },
+    "optimize-autoloader": true
 }
