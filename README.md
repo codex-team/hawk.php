@@ -8,15 +8,13 @@ PHP errors Catcher module for [Hawk.so](https://hawk.so)
 
 ### Install module
 
-<!--
 Use [composer](https://getcomposer.org) to install Catcher
 
 ```bash
-composer require codex-team/hawk.php:dev-master
+composer require codex-team/hawk.php:*
 ```
 
 #### Download and require php file
--->
 
 You can download `hawk.php` file from this repository and require it in your project.
 
@@ -44,7 +42,6 @@ HawkErrorManager::instance('abcd1234-1234-abcd-1234-123456abcdef');
 
 If you want to use custom Hawk server then pass a url to this catcher.
 
-
 ```php
 HawkErrorManager::instance(
     'abcd1234-1234-abcd-1234-123456abcdef',
@@ -58,8 +55,6 @@ Repository: https://github.com/codex-team/hawk.php
 
 Report a bug: https://github.com/codex-team/hawk.php/issues
 
-<!--
 Composer Package: https://packagist.org/packages/codex-team/hawk.php
--->
 
 CodeX Team: https://ifmo.su
