@@ -11,15 +11,16 @@ PHP errors Catcher module for [Hawk.so](https://hawk.so)
 Use [composer](https://getcomposer.org) to install Catcher
 
 ```bash
-composer require codex-team/hawk.php:*
+$ composer require codex-team/hawk.php
+$ composer install
 ```
 
 #### Download and require php file
 
-You can download `hawk.php` file from this repository and require it in your project.
+You can download this repository and require `Hawk.php` file in your project.
 
 ```php
-require 'hawk.php';
+require './hawk.php/src/Hawk.php';
 ```
 
 ### Add namespaces
