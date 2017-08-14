@@ -1,5 +1,7 @@
 <?php
 
+
+
 namespace Hawk;
 
 /**
@@ -41,7 +43,7 @@ class HawkErrorManager
     private static $_instance;
 
     /**
-     * Set private functions cause Singleton 
+     * Set private functions cause Singleton
      */
     private function __clone () {}
     private function __sleep () {}
