@@ -7,6 +7,9 @@
         "php": ">=5.6"
     },
     "autoload": {
-        "psr-4": {"Hawk\\": "hawk"}
+        "classmap": [
+          "src/Hawk.php"
+        ],
+        "psr-4": {"Hawk\\": "src/"}
     }
 }

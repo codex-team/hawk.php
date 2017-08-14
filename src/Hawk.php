@@ -1,5 +1,6 @@
 <?php
 
+
 namespace Hawk;
 
 /**
@@ -9,19 +10,19 @@ namespace Hawk;
  * @example https://hawk.so/docs#add-server-handler
  *
  * Use namespaces
- * > use \Hawk\HawkErrorManager;
+ * > use \Hawk\HawkCatcher;
  *
  * Initialize Hawk this way
- * > HawkErrorManager::instance('abcd1234-1234-abcd-1234-123456abcdef');
+ * > HawkCatcher::instance('abcd1234-1234-abcd-1234-123456abcdef');
  *
  * Or this way if you want to use custom Hawk server
- * > HawkErrorManager::instance(
+ * > HawkCatcher::instance(
  * >         'abcd1234-1234-abcd-1234-123456abcdef',
  * >         'http://myownhawk.coms/catcher/php'
  * > );
  *
  */
-class HawkErrorManager
+class HawkCatcher
 {
     /**
      * Define error handlers
@@ -29,9 +30,9 @@ class HawkErrorManager
     private function __construct ($accessToken) {
         self::$_accessToken = $accessToken;
 
-        register_shutdown_function(array('\Hawk\HawkErrorManager', 'checkForFatal'));
-        set_error_handler(array('\Hawk\HawkErrorManager', 'Log'), E_ALL);
-        set_exception_handler(array('\Hawk\HawkErrorManager', 'LogException'));
+        register_shutdown_function(array('\Hawk\HawkCatcher', 'checkForFatal'));
+        set_error_handler(array('\Hawk\HawkCatcher', 'Log'), E_ALL);
+        set_exception_handler(array('\Hawk\HawkCatcher', 'LogException'));
         error_reporting(E_ALL | E_STRICT);
     }
 
@@ -41,7 +42,7 @@ class HawkErrorManager
     private static $_instance;
 
     /**
-     * Set private functions cause Singleton 
+     * Set private functions cause Singleton
      */
     private function __clone () {}
     private function __sleep () {}

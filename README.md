@@ -11,15 +11,16 @@ PHP errors Catcher module for [Hawk.so](https://hawk.so)
 Use [composer](https://getcomposer.org) to install Catcher
 
 ```bash
-composer require codex-team/hawk.php:*
+$ composer require codex-team/hawk.php
+$ composer install
 ```
 
 #### Download and require php file
 
-You can download `hawk.php` file from this repository and require it in your project.
+You can download this repository and require `Hawk.php` file in your project.
 
 ```php
-require 'hawk.php';
+require './hawk.php/src/Hawk.php';
 ```
 
 ### Add namespaces
@@ -27,7 +28,7 @@ require 'hawk.php';
 Add this line at the top of your PHP script. [Why?](http://php.net/manual/en/language.namespaces.importing.php)
 
 ```php
-use \Hawk\HawkErrorManager;
+use \Hawk\HawkCatcher;
 ```
 
 ### Enable Catcher
@@ -35,7 +36,7 @@ use \Hawk\HawkErrorManager;
 Create an instance and pass project token.
 
 ```php
-HawkErrorManager::instance('abcd1234-1234-abcd-1234-123456abcdef');
+HawkCatcher::instance('abcd1234-1234-abcd-1234-123456abcdef');
 ```
 
 #### Custom Hawk server
@@ -43,7 +44,7 @@ HawkErrorManager::instance('abcd1234-1234-abcd-1234-123456abcdef');
 If you want to use custom Hawk server then pass a url to this catcher.
 
 ```php
-HawkErrorManager::instance(
+HawkCatcher::instance(
     'abcd1234-1234-abcd-1234-123456abcdef',
     'http://myownhawk.com/catcher/php'
 );
