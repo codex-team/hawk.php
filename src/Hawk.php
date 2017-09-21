@@ -9,6 +9,8 @@ namespace Hawk;
  * @copyright Codex Team
  * @example https://hawk.so/docs#add-server-handler
  *
+ * Require this file by your self or via composer
+ *
  * Use namespaces
  * > use \Hawk\HawkCatcher;
  *
@@ -21,6 +23,12 @@ namespace Hawk;
  * >         'http://myownhawk.coms/catcher/php'
  * > );
  *
+ * Enable catchers
+ * > HawkCatcher::enableHandlers(
+ * >     TRUE,          // catch exceptions
+ * >     TRUE,          // catch errors
+ * >     TRUE,          // catch shutdown
+ * > );
  */
 class HawkCatcher
 {
@@ -29,11 +37,6 @@ class HawkCatcher
      */
     private function __construct ($accessToken) {
         self::$_accessToken = $accessToken;
-
-        register_shutdown_function(array('\Hawk\HawkCatcher', 'checkForFatal'));
-        set_error_handler(array('\Hawk\HawkCatcher', 'Log'), E_ALL);
-        set_exception_handler(array('\Hawk\HawkCatcher', 'LogException'));
-        error_reporting(E_ALL | E_STRICT);
     }
 
     /**
@@ -74,6 +77,28 @@ class HawkCatcher
     }
 
     /**
+     * Enable Hawk handlers functions for Exceptions, Error and Shutdown.
+     *
+     * @param $exceptions (bool)       (TRUE) enable catching exceptions
+     * @param $errors (bool)           (TRUE) enable catching errors
+     * @param $shutdown (bool)         (TRUE) enable catching shutdown
+     */
+    static public function enableHandlers($exceptions = TRUE, $errors = TRUE, $shutdown = TRUE) {
+
+        if ($exceptions) {
+            set_exception_handler(array('\Hawk\HawkCatcher', 'LogException'));
+        }
+
+        if ($errors) {
+            set_error_handler(array('\Hawk\HawkCatcher', 'LogError'), E_ALL);
+        }
+
+        if ($shutdown) {
+            register_shutdown_function(array('\Hawk\HawkCatcher', 'checkForFatal'));
+        }
+    }
+
+    /**
      * Fatal errors catch method
      */
     static public function checkForFatal () {
@@ -88,13 +113,20 @@ class HawkCatcher
      * Construct Exceptions and send them to Logs
      */
     static public function LogException ($exception) {
-        self::Log(E_ERROR, $exception->getMessage(), $exception->getFile(), $exception->getLine(), []);
+        self::prepare($exception->getCode() ?: E_ERROR, $exception->getMessage(), $exception->getFile(), $exception->getLine(), []);
+    }
+
+    /**
+     * Works automacally. PHP would call this function on error by himself.
+     */
+    static public function LogError ($errno, $errstr, $errfile, $errline, $errcontext) {
+        self::prepare($errno, $errstr, $errfile, $errline, $errcontext);
     }
 
     /**
      * Construct logs package and send them to service with access token
      */
-    public static function Log ($errno, $errstr, $errfile, $errline, $errcontext) {
+    private static function prepare ($errno, $errstr, $errfile, $errline, $errcontext) {
         $data = array(
             "error_type" => $errno,
             "error_description" => $errstr,
