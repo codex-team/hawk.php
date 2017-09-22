@@ -62,13 +62,19 @@ If you want to catch error automatically then run the following command with boo
 
 ```php
 \Hawk\HawkCatcher::enableHandlers(
-    $exceptions = TRUE,
-    $errors = TRUE,
-    $shutdown = TRUE
+    TRUE,       // exceptions
+    TRUE,       // errors
+    TRUE        // shutdown
 );
 ```
 
-### Log exceptions
+By default Hawk will catch everything. You can run function with no params.
+
+```php
+\Hawk\HawkCatcher::enableHandlers();
+```
+
+### Catch exception
 
 You can catch exceptions by yourself without enabling handlers.
 
@@ -76,7 +82,7 @@ You can catch exceptions by yourself without enabling handlers.
 try {
     throw new Exception("Error Processing Request", 1);
 } catch (Exception $e) {
-    \Hawk\HawkCatcher::LogException($e);
+    \Hawk\HawkCatcher::catchException($e);
 }
 ```
 

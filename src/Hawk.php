@@ -86,41 +86,41 @@ class HawkCatcher
     static public function enableHandlers($exceptions = TRUE, $errors = TRUE, $shutdown = TRUE) {
 
         if ($exceptions) {
-            set_exception_handler(array('\Hawk\HawkCatcher', 'LogException'));
+            set_exception_handler(array('\Hawk\HawkCatcher', 'catchException'));
         }
 
         if ($errors) {
-            set_error_handler(array('\Hawk\HawkCatcher', 'LogError'), E_ALL);
+            set_error_handler(array('\Hawk\HawkCatcher', 'catchError'), E_ALL);
         }
 
         if ($shutdown) {
-            register_shutdown_function(array('\Hawk\HawkCatcher', 'checkForFatal'));
-        }
-    }
-
-    /**
-     * Fatal errors catch method
-     */
-    static public function checkForFatal () {
-        $error = error_get_last();
-
-        if ( $error['type'] == E_ERROR ) {
-            self::Log($error['type'], $error['message'], $error['file'], $error['line'], []);
+            register_shutdown_function(array('\Hawk\HawkCatcher', 'catchFatal'));
         }
     }
 
     /**
      * Construct Exceptions and send them to Logs
      */
-    static public function LogException ($exception) {
-        self::prepare($exception->getCode() ?: E_ERROR, $exception->getMessage(), $exception->getFile(), $exception->getLine(), []);
+    static public function catchException ($exception) {
+        self::prepare($exception->getCode(), $exception->getMessage(), $exception->getFile(), $exception->getLine(), []);
     }
 
     /**
-     * Works automacally. PHP would call this function on error by himself.
+     * Works automatically. PHP would call this function on error by himself.
      */
-    static public function LogError ($errno, $errstr, $errfile, $errline, $errcontext) {
+    static public function catchError ($errno, $errstr, $errfile, $errline, $errcontext) {
         self::prepare($errno, $errstr, $errfile, $errline, $errcontext);
+    }
+
+    /**
+     * Fatal errors catch method
+     */
+    static public function catchFatal () {
+        $error = error_get_last();
+
+        if ( $error['type'] ) {
+            self::prepare($error['type'], $error['message'], $error['file'], $error['line'], []);
+        }
     }
 
     /**
