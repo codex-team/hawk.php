@@ -25,7 +25,7 @@ require './hawk.php/src/Hawk.php';
 
 ### Init HawkCatcher
 
-Create an instance and pass token at the start of your project.
+Create an instance and pass token in the entry point of your project (usually `index.php` or `bootstrap.php`).
 
 ```php
 \Hawk\HawkCatcher::instance('abcd1234-1234-abcd-1234-123456abcdef');
@@ -50,7 +50,7 @@ If you want to use custom Hawk server then pass a url to this catcher.
 
 ### Enable handlers
 
-If you want to catch error automatically then run the following command with boolean params to enable some handlers.
+If you want to catch error automatically run the following command with boolean params to enable some handlers.
 
 ```php
 \Hawk\HawkCatcher::enableHandlers(
