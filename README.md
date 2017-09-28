@@ -23,20 +23,18 @@ You can download this repository and require `Hawk.php` file in your project.
 require './hawk.php/src/Hawk.php';
 ```
 
-### Add namespaces
+### Init HawkCatcher
 
-Add this line at the top of your PHP script. [Why?](http://php.net/manual/en/language.namespaces.importing.php)
+Create an instance with token to the entry point of your project (usually `index.php` or `bootstrap.php`).
 
 ```php
-use \Hawk\HawkCatcher;
+\Hawk\HawkCatcher::instance('abcd1234-1234-abcd-1234-123456abcdef');
 ```
 
-### Enable Catcher
-
-Create an instance and pass project token.
+You can store token in the environment file
 
 ```php
-HawkCatcher::instance('abcd1234-1234-abcd-1234-123456abcdef');
+\Hawk\HawkCatcher::instance($_SERVER['HAWK_TOKEN']);
 ```
 
 #### Custom Hawk server
@@ -44,10 +42,40 @@ HawkCatcher::instance('abcd1234-1234-abcd-1234-123456abcdef');
 If you want to use custom Hawk server then pass a url to this catcher.
 
 ```php
-HawkCatcher::instance(
+\Hawk\HawkCatcher::instance(
     'abcd1234-1234-abcd-1234-123456abcdef',
     'http://myownhawk.com/catcher/php'
 );
+```
+
+### Enable handlers
+
+If you want to catch error automatically run the following command with boolean params to enable some handlers.
+
+```php
+\Hawk\HawkCatcher::enableHandlers(
+    TRUE,       // exceptions
+    TRUE,       // errors
+    TRUE        // shutdown
+);
+```
+
+By default Hawk will catch everything. You can run function with no params.
+
+```php
+\Hawk\HawkCatcher::enableHandlers();
+```
+
+### Catch exception
+
+You can catch exceptions by yourself without enabling handlers.
+
+```php
+try {
+    throw new Exception("Error Processing Request", 1);
+} catch (Exception $e) {
+    \Hawk\HawkCatcher::catchException($e);
+}
 ```
 
 ## Links
