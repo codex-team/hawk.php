@@ -25,7 +25,7 @@ require './hawk.php/src/Hawk.php';
 
 ### Init HawkCatcher
 
-Create an instance and pass token in the entry point of your project (usually `index.php` or `bootstrap.php`).
+Create an instance with token to the entry point of your project (usually `index.php` or `bootstrap.php`).
 
 ```php
 \Hawk\HawkCatcher::instance('abcd1234-1234-abcd-1234-123456abcdef');
