@@ -23,14 +23,6 @@ You can download this repository and require `Hawk.php` file in your project.
 require './hawk.php/src/Hawk.php';
 ```
 
-<!-- ### 2. Add namespaces
-
-Add this line at the top of your PHP script. [Why?](http://php.net/manual/en/language.namespaces.importing.php)
-
-```php
-use \Hawk\HawkCatcher;
-``` -->
-
 ### Init HawkCatcher
 
 Create an instance and pass token at the start of your project.

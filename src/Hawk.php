@@ -8,27 +8,6 @@ namespace Hawk;
  *
  * @copyright Codex Team
  * @example https://hawk.so/docs#add-server-handler
- *
- * Require this file by your self or via composer
- *
- * Use namespaces
- * > use \Hawk\HawkCatcher;
- *
- * Initialize Hawk this way
- * > HawkCatcher::instance('abcd1234-1234-abcd-1234-123456abcdef');
- *
- * Or this way if you want to use custom Hawk server
- * > HawkCatcher::instance(
- * >         'abcd1234-1234-abcd-1234-123456abcdef',
- * >         'http://myownhawk.coms/catcher/php'
- * > );
- *
- * Enable catchers
- * > HawkCatcher::enableHandlers(
- * >     TRUE,          // catch exceptions
- * >     TRUE,          // catch errors
- * >     TRUE,          // catch shutdown
- * > );
  */
 class HawkCatcher
 {
@@ -102,14 +81,14 @@ class HawkCatcher
      * Construct Exceptions and send them to Logs
      */
     static public function catchException ($exception) {
-        self::prepare($exception->getCode(), $exception->getMessage(), $exception->getFile(), $exception->getLine(), []);
+        return self::prepare($exception->getCode(), $exception->getMessage(), $exception->getFile(), $exception->getLine(), []);
     }
 
     /**
      * Works automatically. PHP would call this function on error by himself.
      */
     static public function catchError ($errno, $errstr, $errfile, $errline, $errcontext) {
-        self::prepare($errno, $errstr, $errfile, $errline, $errcontext);
+        return self::prepare($errno, $errstr, $errfile, $errline, $errcontext);
     }
 
     /**
@@ -119,7 +98,7 @@ class HawkCatcher
         $error = error_get_last();
 
         if ( $error['type'] ) {
-            self::prepare($error['type'], $error['message'], $error['file'], $error['line'], []);
+            return self::prepare($error['type'], $error['message'], $error['file'], $error['line'], []);
         }
     }
 
@@ -140,7 +119,7 @@ class HawkCatcher
             "POST" => $_POST
         );
 
-        self::send($data);
+        return self::send($data);
     }
 
     /**
@@ -155,6 +134,7 @@ class HawkCatcher
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $server_output = curl_exec($ch);
         curl_close($ch);
-    }
 
+        return $server_output;
+    }
 }
