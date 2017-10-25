@@ -126,12 +126,18 @@ class HawkCatcher
      * Send package to service defined by api_url from settings
      */
     private static function send ($package) {
+
+        if ( !self::$_accessToken ) {
+            return "No access token";
+        }
+
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, self::$_url);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($package));
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
         $server_output = curl_exec($ch);
         curl_close($ch);
 
