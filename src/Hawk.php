@@ -81,7 +81,7 @@ class HawkCatcher
      * Construct Exceptions and send them to Logs
      */
     static public function catchException ($exception) {
-        return self::prepare($exception->getCode(), $exception->getMessage(), $exception->getFile(), $exception->getLine(), []);
+        return self::prepare($exception->getCode(), $exception->getMessage(), $exception->getFile(), $exception->getLine(), array());
     }
 
     /**
@@ -98,7 +98,7 @@ class HawkCatcher
         $error = error_get_last();
 
         if ( $error['type'] ) {
-            return self::prepare($error['type'], $error['message'], $error['file'], $error['line'], []);
+            return self::prepare($error['type'], $error['message'], $error['file'], $error['line'], array());
         }
     }
 
