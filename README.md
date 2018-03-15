@@ -54,9 +54,24 @@ If you want to catch error automatically run the following command with boolean 
 
 ```php
 \Hawk\HawkCatcher::enableHandlers(
-    TRUE,       // exceptions
-    TRUE,       // errors
-    TRUE        // shutdown
+    
+    /** Exceptions */
+    TRUE,       
+    
+    /** Errors */
+    TRUE,
+    
+    /** Shutdown */
+    TRUE,
+    
+    /** 
+     * Type of errors to be catched and reported
+     *
+     * @see http://php.net/manual/en/errorfunc.constants.php 
+     *
+     * @example all errors except notices
+     */
+    E_ALL | E_NOTICE 
 );
 ```
 

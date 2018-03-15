@@ -58,18 +58,20 @@ class HawkCatcher
     /**
      * Enable Hawk handlers functions for Exceptions, Error and Shutdown.
      *
-     * @param $exceptions (bool)       (TRUE) enable catching exceptions
-     * @param $errors (bool)           (TRUE) enable catching errors
-     * @param $shutdown (bool)         (TRUE) enable catching shutdown
+     * @param boolean $exceptions - (default: TRUE) enable catching exceptions
+     * @param boolean $errors - (default: TRUE) enable catching errors
+     * @param boolean $shutdown - (default: TRUE) enable catching shutdown
+     * @param integer $error_types - (default: E_ALL) types of errors to be reported
+     *                               http://php.net/manual/en/errorfunc.constants.php
      */
-    static public function enableHandlers($exceptions = TRUE, $errors = TRUE, $shutdown = TRUE) {
+    static public function enableHandlers($exceptions = TRUE, $errors = TRUE, $shutdown = TRUE, $error_types = E_ALL) {
 
         if ($exceptions) {
             set_exception_handler(array('\Hawk\HawkCatcher', 'catchException'));
         }
 
         if ($errors) {
-            set_error_handler(array('\Hawk\HawkCatcher', 'catchError'), E_ALL);
+            set_error_handler(array('\Hawk\HawkCatcher', 'catchError'), $error_types);
         }
 
         if ($shutdown) {
