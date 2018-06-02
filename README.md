@@ -12,15 +12,6 @@ Use [composer](https://getcomposer.org) to install Catcher
 
 ```bash
 $ composer require codex-team/hawk.php
-$ composer install
-```
-
-#### Download and require php file
-
-You can download this repository and require `Hawk.php` file in your project.
-
-```php
-require './hawk.php/src/Hawk.php';
 ```
 
 ### Init HawkCatcher
@@ -66,7 +57,27 @@ By default Hawk will catch everything. You can run function with no params.
 \Hawk\HawkCatcher::enableHandlers();
 ```
 
-### Catch exception
+You can pass types of errors to be caught
+
+```php
+// Catch run-time warnings or compile-time parse errors
+\Hawk\HawkCatcher::enableHandlers(
+    TRUE,                // exceptions
+    E_WARNING | E_PARSE, // errors
+    TRUE                 // shutdown
+);
+```
+
+```php
+// Catch everything except notices
+\Hawk\HawkCatcher::enableHandlers(
+    TRUE,              // exceptions
+    E_ALL & ~E_NOTICE, // errors
+    TRUE               // shutdown
+);
+```
+
+### Catch exceptions
 
 You can catch exceptions by yourself without enabling handlers.
 
@@ -77,6 +88,21 @@ try {
     \Hawk\HawkCatcher::catchException($e);
 }
 ```
+
+## Monolog
+
+If you want to use this Catcher with Monolog then simply register a handler.
+
+```php
+$logger = new \Monolog\Logger('hawk-test');
+
+$HAWK_TOKEN = 'abcd1234-1234-abcd-1234-123456abcdef';
+$logger->pushHandler(new \Hawk\Monolog\Handler($HAWK_TOKEN), \Monolog\Logger::DEBUG);
+
+$handler = \Monolog\ErrorHandler::register($logger);
+```
+
+It will catch provided errors and exception. Usual string logs will be ignored.
 
 ## Links
 

@@ -4,6 +4,7 @@
     "type": "library",
     "license": "MIT",
     "require": {
+        "ext-curl": "*",
         "php": ">=5.3"
     },
     "autoload": {
