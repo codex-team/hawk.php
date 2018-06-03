@@ -164,7 +164,6 @@ class Stack
             $stack[$index]['trace'] = self::getAdjacentLines($callee['file'], $callee['line']);
         }
 
-
         /**
          * Add real error's path to trace chain
          */

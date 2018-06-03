@@ -22,6 +22,9 @@ class Headers
         $headers = [];
 
         foreach ($_SERVER as $name => $value) {
+            /**
+             * If $_SERVER key starts with 'HTTP_' then it is a header
+             */
             if (substr($name, 0, 5) == 'HTTP_') {
                 /**
                  * Remove HTTP_ from the start of key
