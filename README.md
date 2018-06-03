@@ -2,7 +2,7 @@
 
 PHP errors Catcher module for [Hawk.so](https://hawk.so).
 
-![](https://capella.pics/89da764a-4ccf-47bd-a253-2642cd5f525c)
+![](https://capella.pics/c0fe5eeb-027d-427a-9e0d-b2e1dcaaf303)
 
 ## Usage
 
