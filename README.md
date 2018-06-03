@@ -26,12 +26,6 @@ Create an instance with token to the entry point of your project (usually `index
 \Hawk\HawkCatcher::instance('abcd1234-1234-abcd-1234-123456abcdef');
 ```
 
-You can store token in the environment file
-
-```php
-\Hawk\HawkCatcher::instance($_SERVER['HAWK_TOKEN']);
-```
-
 ### Custom Hawk server
 
 If you want to use custom Hawk server then pass a url to this catcher.
@@ -148,7 +142,7 @@ throw new Error('Just an error in a high quality code', E_USER_ERROR);
 
 ## Issues and improvements
 
-Feed free to ask questions or improve the project.
+Feel free to ask questions or improve the project.
 
 ## Links
 
