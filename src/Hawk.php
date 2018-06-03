@@ -147,26 +147,28 @@ class HawkCatcher
     }
 
     /**
-     * @todo
-     * Works automatically. PHP would call this function on error by himself.
+     * Errors catcher. PHP would call this function on error by himself
      *
-     * @param $errno
-     * @param $errstr
-     * @param $errfile
-     * @param $errline
-     * @param $errcontext
+     * @param integer $errCode
+     * @param string $errMessage
+     * @param string $errFile
+     * @param integer $errLine
+     * @param mixed|array $context
      *
      * @return string|boolean
      */
-    public static function catchError($errno, $errstr, $errfile, $errline, $errcontext)
+    public static function catchError($errCode, $errMessage, $errFile, $errLine, $context)
     {
         /**
          * Create an exception with error's data
          */
-        $exception = new \ErrorException($errstr, $errno, null,  $errfile, $errline);
+        $exception = new \ErrorException($errMessage, $errCode, null,  $errFile, $errLine);
 
         /**
          * Process exception
+         *
+         * Ignore $context because there are global variables
+         * as POST, ENV, SERVER etc. We will get them later.
          */
         return self::processException($exception);
     }
