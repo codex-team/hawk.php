@@ -54,7 +54,7 @@ class HawkCatcher
         }
 
         /**
-         * Singleton helper
+         * Singleton
          */
         if (!self::$_instance) {
             self::$_instance = new self($accessToken);
@@ -86,17 +86,17 @@ class HawkCatcher
      *     TRUE                 // shutdown
      * );
      *
-     * @param bool         $exceptions       (TRUE) enable catching exceptions
-     * @param bool|integer $catchTheseErrors (TRUE) enable catching errors
-     *                                       You can pass a bitmask of error types
-     *                                       See an example above
-     * @param bool         $shutdown         (TRUE) enable catching shutdowns
+     * @param bool         $exceptions (TRUE) enable catching exceptions
+     * @param bool|integer $errors     (TRUE) enable catching errors
+     *                                 You can pass a bitmask of error types
+     *                                 See an example above
+     * @param bool         $shutdown   (TRUE) enable catching shutdowns
      *
      * @return void
      */
     public static function enableHandlers(
         $exceptions = TRUE,
-        $catchTheseErrors = TRUE,
+        $errors = TRUE,
         $shutdown = TRUE
     ) {
         /**
@@ -108,11 +108,11 @@ class HawkCatcher
 
         /**
          * Catch errors
-         * By default if $catchTheseErrors equals True then catch all errors
+         * By default if $errors equals True then catch all errors
          */
-        $catchTheseErrors = $catchTheseErrors === TRUE ? null : $catchTheseErrors;
-        if ($catchTheseErrors) {
-            set_error_handler(array('\Hawk\HawkCatcher', 'catchError'), $catchTheseErrors);
+        $errors = $errors === TRUE ? null : $errors;
+        if ($errors) {
+            set_error_handler(array('\Hawk\HawkCatcher', 'catchError'), $errors);
         }
 
         /**
