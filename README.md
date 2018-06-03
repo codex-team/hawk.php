@@ -16,7 +16,7 @@ Use [composer](https://getcomposer.org) to install Catcher
 $ composer require codex-team/hawk.php
 ```
 
-3. Use as [standalone catcher](standalone-error-catcher), use with [Monolog](monolog-support).
+3. Use as [standalone catcher](#standalone-error-catcher), use with [Monolog](#monolog-support).
 
 ## Standalone error catcher
 
