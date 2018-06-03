@@ -1,12 +1,14 @@
-# hawk.php
+# Hawk PHP
 
-PHP errors Catcher module for [Hawk.so](https://hawk.so)
+PHP errors Catcher module for [Hawk.so](https://hawk.so).
+
+![](https://capella.pics/89da764a-4ccf-47bd-a253-2642cd5f525c)
 
 ## Usage
 
-[Register](https://hawk.so/join) an account and get a project token.
+1. [Register](https://hawk.so/join) an account and get a project token.
 
-### Install module
+2. Install module
 
 Use [composer](https://getcomposer.org) to install Catcher
 
@@ -14,7 +16,9 @@ Use [composer](https://getcomposer.org) to install Catcher
 $ composer require codex-team/hawk.php
 ```
 
-### Init HawkCatcher
+3. Use as [standalone catcher](standalone-error-catcher), use with [Monolog](monolog-support).
+
+## Standalone error catcher
 
 Create an instance with token to the entry point of your project (usually `index.php` or `bootstrap.php`).
 
@@ -28,7 +32,7 @@ You can store token in the environment file
 \Hawk\HawkCatcher::instance($_SERVER['HAWK_TOKEN']);
 ```
 
-#### Custom Hawk server
+### Custom Hawk server
 
 If you want to use custom Hawk server then pass a url to this catcher.
 
@@ -89,9 +93,10 @@ try {
 }
 ```
 
-## Monolog
+## Monolog support
 
-If you want to use this Catcher with Monolog then simply register a handler.
+If you want to use Hawk Catcher with Monolog then simply add a handler.
+It will catch provided errors and exception. Common string logs will be ignored.
 
 ```php
 $logger = new \Monolog\Logger('hawk-test');
@@ -99,10 +104,51 @@ $logger = new \Monolog\Logger('hawk-test');
 $HAWK_TOKEN = 'abcd1234-1234-abcd-1234-123456abcdef';
 $logger->pushHandler(new \Hawk\Monolog\Handler($HAWK_TOKEN), \Monolog\Logger::DEBUG);
 
+/**
+ * If you want to use custom Hawk server (local dev as example) then pass
+ * catcher's url as second param to \Hawk\Monolog\Handler constructor.
+ *
+ * $logger->pushHandler(
+ *     new \Hawk\Monolog\Handler(
+ *         'abcd1234-1234-abcd-1234-123456abcdef',
+ *         'localhost:3000/catcher/php'
+ *     ),
+ *     \Monolog\Logger::DEBUG
+ * );
+ */
+```
+
+Now you can use logger's functions to process handled exceptions.
+
+```php
+try {
+   throw new Exception('Something went wrong');
+} catch (\Exception $e) {
+   $logger->error($e->getMessage(), ['exception' => $e]);
+}
+```
+
+### Default error catcher
+
+Register Monolog's handler as catcher.
+
+```php
+/** Set monolog as default error handler */
 $handler = \Monolog\ErrorHandler::register($logger);
 ```
 
-It will catch provided errors and exception. Usual string logs will be ignored.
+It will catch all errors and send them to Hawk.
+
+Example of throwing unhandled error (without try-catch construction):
+
+```php
+/** Fatal Error: "Just an error in a high quality code" */
+throw new Error('Just an error in a high quality code', E_USER_ERROR);
+```
+
+## Issues and improvements
+
+Feed free to ask questions or improve the project.
 
 ## Links
 
@@ -113,3 +159,7 @@ Report a bug: https://github.com/codex-team/hawk.php/issues
 Composer Package: https://packagist.org/packages/codex-team/hawk.php
 
 CodeX Team: https://ifmo.su
+
+## License
+
+MIT

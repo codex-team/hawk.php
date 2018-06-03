@@ -57,25 +57,25 @@ class Handler extends AbstractProcessingHandler
             /**
              * Get exception message
              */
-            $message = $context['message'];
+            $message = isset($context['message']) ? $context['message'] : null;
             unset($context['message']);
 
             /**
              * Get exception code
              */
-            $code = $context['code'];
+            $code = isset($context['code']) ? $context['code'] : null;
             unset($context['code']);
 
             /**
              * Get path to file with exception
              */
-            $file = $context['file'];
+            $file = isset($context['file']) ? $context['file'] : null;
             unset($context['file']);
 
             /**
              * Get line in the file exception
              */
-            $line = $context['line'];
+            $line = isset($context['line']) ? $context['line'] : null;
             unset($context['line']);
 
             /**

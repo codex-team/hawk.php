@@ -128,17 +128,11 @@ class Stack
             $isCalleeHasNoFile = empty($callee['file']);
 
             /**
-             * Remove Hawk's functions from stack
-             */
-            $isCalleeHawk = !empty($callee['class']) && $callee['class'] == 'Hawk\HawkCatcher';
-
-            /**
              * Add ignore rules
              * - check if filepath is empty
-             * - check if callee is Hawk
              * - check if we have found real error in stack
              */
-            if ($isCalleeHasNoFile || $isCalleeHawk || $isErrorPositionWasFound) {
+            if ($isCalleeHasNoFile || $isErrorPositionWasFound) {
                 /**
                  * Remove this call
                  */
