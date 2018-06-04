@@ -89,8 +89,8 @@ try {
 
 ## Monolog support
 
-If you want to use Hawk Catcher with Monolog then simply add a handler.
-It will catch provided errors and exception. Common string logs will be ignored.
+If you want to use Hawk Catcher with Monolog simply add a handler.
+It catches provided errors and exception. Common string logs will be ignored.
 
 ```php
 $logger = new \Monolog\Logger('hawk-test');
@@ -131,9 +131,9 @@ Register Monolog's handler as catcher.
 $handler = \Monolog\ErrorHandler::register($logger);
 ```
 
-It will catch all errors and send them to Hawk.
+It catches all errors and sends them to Hawk.
 
-Example of throwing unhandled error (without try-catch construction):
+Throwing unhandled error example (without try-catch construction):
 
 ```php
 /** Fatal Error: "Just an error in a high quality code" */
