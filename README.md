@@ -97,19 +97,6 @@ $logger = new \Monolog\Logger('hawk-test');
 
 $HAWK_TOKEN = 'abcd1234-1234-abcd-1234-123456abcdef';
 $logger->pushHandler(new \Hawk\Monolog\Handler($HAWK_TOKEN), \Monolog\Logger::DEBUG);
-
-/**
- * If you want to use custom Hawk server (local dev as example) then pass
- * catcher's url as second param to \Hawk\Monolog\Handler constructor.
- *
- * $logger->pushHandler(
- *     new \Hawk\Monolog\Handler(
- *         'abcd1234-1234-abcd-1234-123456abcdef',
- *         'localhost:3000/catcher/php'
- *     ),
- *     \Monolog\Logger::DEBUG
- * );
- */
 ```
 
 Now you can use logger's functions to process handled exceptions.
