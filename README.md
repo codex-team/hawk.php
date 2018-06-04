@@ -90,7 +90,7 @@ try {
 ## Monolog support
 
 If you want to use Hawk Catcher with Monolog simply add a handler.
-It catches provided errors and exception. Common string logs will be ignored.
+It catches provided errors/exception and ignores general logs.
 
 ```php
 $logger = new \Monolog\Logger('hawk-test');
