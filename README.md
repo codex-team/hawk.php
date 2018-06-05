@@ -1,12 +1,12 @@
 # Hawk PHP
 
-PHP errors Catcher module for [Hawk.so](https://hawk.so).
+PHP errors Catcher for [Hawk.so](https://hawk.so).
 
 ![](https://capella.pics/c0fe5eeb-027d-427a-9e0d-b2e1dcaaf303)
 
 ## Usage
 
-1. [Register](https://hawk.so/join) an account and get a project token.
+1. [Register](https://hawk.so/join) an account and get an Integration Token.
 
 2. Install module
 
@@ -16,30 +16,25 @@ Use [composer](https://getcomposer.org) to install Catcher
 $ composer require codex-team/hawk.php
 ```
 
-3. Use as [standalone catcher](#standalone-error-catcher), use with [Monolog](#monolog-support).
+3. Use as a [standalone catcher](#standalone-error-catcher) or use with [Monolog](#monolog-support).
 
 ## Standalone error catcher
 
-Create an instance with token to the entry point of your project (usually `index.php` or `bootstrap.php`).
+Create an instance with Token at the entry point of your project.
 
 ```php
 \Hawk\HawkCatcher::instance('abcd1234-1234-abcd-1234-123456abcdef');
 ```
 
-### Custom Hawk server
-
-If you want to use custom Hawk server then pass a url to this catcher.
-
-```php
-\Hawk\HawkCatcher::instance(
-    'abcd1234-1234-abcd-1234-123456abcdef',
-    'http://myownhawk.com/catcher/php'
-);
-```
-
 ### Enable handlers
 
-If you want to catch error automatically run the following command with boolean params to enable some handlers.
+By default Hawk will catch everything. You can run function with no params.
+
+```php
+\Hawk\HawkCatcher::enableHandlers();
+```
+
+It's similar to
 
 ```php
 \Hawk\HawkCatcher::enableHandlers(
@@ -49,13 +44,7 @@ If you want to catch error automatically run the following command with boolean 
 );
 ```
 
-By default Hawk will catch everything. You can run function with no params.
-
-```php
-\Hawk\HawkCatcher::enableHandlers();
-```
-
-You can pass types of errors to be caught
+You can pass types of errors you want to track:
 
 ```php
 // Catch run-time warnings or compile-time parse errors
@@ -75,9 +64,9 @@ You can pass types of errors to be caught
 );
 ```
 
-### Catch exceptions
+### Catch handled exceptions
 
-You can catch exceptions by yourself without enabling handlers.
+You can catch exceptions manually with `catchException` method.
 
 ```php
 try {
@@ -89,8 +78,7 @@ try {
 
 ## Monolog support
 
-If you want to use Hawk Catcher with Monolog simply add a handler.
-It catches provided errors/exception and ignores general logs.
+Add a handler to the Monolog. It will catch errors/exception and ignore general logs.
 
 ```php
 $logger = new \Monolog\Logger('hawk-test');
