@@ -87,7 +87,7 @@ $HAWK_TOKEN = 'abcd1234-1234-abcd-1234-123456abcdef';
 $logger->pushHandler(new \Hawk\Monolog\Handler($HAWK_TOKEN, \Monolog\Logger::DEBUG));
 ```
 
-Now you can use logger's functions to process handled exceptions.
+Now you can use logger's functions to process handled exceptions. Pass it to context array in 'exception' field.
 
 ```php
 try {
