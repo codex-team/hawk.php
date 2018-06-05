@@ -101,7 +101,7 @@ class Headers
                  * When doing HTTP authentication this variable is set
                  * to the password provided by the user.
                  */
-                $basic_pass = $_SERVER['PHP_AUTH_PW'] ?? '';
+                $basic_pass = $_SERVER['PHP_AUTH_PW'] ?: '';
                 $headers['Authorization'] = 'Basic ' . base64_encode($_SERVER['PHP_AUTH_USER'] . ':' . $basic_pass);
 
             /**
