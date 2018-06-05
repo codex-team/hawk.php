@@ -1,56 +1,40 @@
-# hawk.php
+# Hawk PHP
 
-PHP errors Catcher module for [Hawk.so](https://hawk.so)
+PHP errors Catcher for [Hawk.so](https://hawk.so).
+
+![](https://capella.pics/c0fe5eeb-027d-427a-9e0d-b2e1dcaaf303)
 
 ## Usage
 
-[Register](https://hawk.so/join) an account and get a project token.
+1. [Register](https://hawk.so/join) an account and get an Integration Token.
 
-### Install module
+2. Install module
 
 Use [composer](https://getcomposer.org) to install Catcher
 
 ```bash
 $ composer require codex-team/hawk.php
-$ composer install
 ```
 
-#### Download and require php file
+3. Use as a [standalone catcher](#standalone-error-catcher) or use with [Monolog](#monolog-support).
 
-You can download this repository and require `Hawk.php` file in your project.
+## Standalone error catcher
 
-```php
-require './hawk.php/src/Hawk.php';
-```
-
-### Init HawkCatcher
-
-Create an instance with token to the entry point of your project (usually `index.php` or `bootstrap.php`).
+Create an instance with Token at the entry point of your project.
 
 ```php
 \Hawk\HawkCatcher::instance('abcd1234-1234-abcd-1234-123456abcdef');
 ```
 
-You can store token in the environment file
-
-```php
-\Hawk\HawkCatcher::instance($_SERVER['HAWK_TOKEN']);
-```
-
-#### Custom Hawk server
-
-If you want to use custom Hawk server then pass a url to this catcher.
-
-```php
-\Hawk\HawkCatcher::instance(
-    'abcd1234-1234-abcd-1234-123456abcdef',
-    'http://myownhawk.com/catcher/php'
-);
-```
-
 ### Enable handlers
 
-If you want to catch error automatically run the following command with boolean params to enable some handlers.
+By default Hawk will catch everything. You can run function with no params.
+
+```php
+\Hawk\HawkCatcher::enableHandlers();
+```
+
+It's similar to
 
 ```php
 \Hawk\HawkCatcher::enableHandlers(
@@ -60,15 +44,29 @@ If you want to catch error automatically run the following command with boolean 
 );
 ```
 
-By default Hawk will catch everything. You can run function with no params.
+You can pass types of errors you want to track:
 
 ```php
-\Hawk\HawkCatcher::enableHandlers();
+// Catch run-time warnings or compile-time parse errors
+\Hawk\HawkCatcher::enableHandlers(
+    TRUE,                // exceptions
+    E_WARNING | E_PARSE, // errors
+    TRUE                 // shutdown
+);
 ```
 
-### Catch exception
+```php
+// Catch everything except notices
+\Hawk\HawkCatcher::enableHandlers(
+    TRUE,              // exceptions
+    E_ALL & ~E_NOTICE, // errors
+    TRUE               // shutdown
+);
+```
 
-You can catch exceptions by yourself without enabling handlers.
+### Catch handled exceptions
+
+You can catch exceptions manually with `catchException` method.
 
 ```php
 try {
@@ -77,6 +75,49 @@ try {
     \Hawk\HawkCatcher::catchException($e);
 }
 ```
+
+## Monolog support
+
+Add a handler to the Monolog. It will catch errors/exception and ignore general logs.
+
+```php
+$logger = new \Monolog\Logger('hawk-test');
+
+$HAWK_TOKEN = 'abcd1234-1234-abcd-1234-123456abcdef';
+$logger->pushHandler(new \Hawk\Monolog\Handler($HAWK_TOKEN, \Monolog\Logger::DEBUG));
+```
+
+Now you can use logger's functions to process handled exceptions. Pass it to context array in 'exception' field.
+
+```php
+try {
+   throw new Exception('Something went wrong');
+} catch (\Exception $e) {
+   $logger->error($e->getMessage(), ['exception' => $e]);
+}
+```
+
+### Default error catcher
+
+Register Monolog's handler as catcher.
+
+```php
+/** Set monolog as default error handler */
+$handler = \Monolog\ErrorHandler::register($logger);
+```
+
+It catches all errors and sends them to Hawk.
+
+Throwing unhandled error example (without try-catch construction):
+
+```php
+/** Fatal Error: "Just an error in a high quality code" */
+throw new Error('Just an error in a high quality code', E_USER_ERROR);
+```
+
+## Issues and improvements
+
+Feel free to ask questions or improve the project.
 
 ## Links
 
@@ -87,3 +128,7 @@ Report a bug: https://github.com/codex-team/hawk.php/issues
 Composer Package: https://packagist.org/packages/codex-team/hawk.php
 
 CodeX Team: https://ifmo.su
+
+## License
+
+MIT

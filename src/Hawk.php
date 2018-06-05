@@ -1,34 +1,21 @@
 <?php
 
-
 namespace Hawk;
+
+use Hawk\Helper;
 
 /**
  * Hawk PHP Catcher
  *
- * @copyright Codex Team
- * @example https://hawk.so/docs#add-server-handler
+ * @copyright CodeX Team
+ * @see https://hawk.so/docs#add-server-handler
  */
 class HawkCatcher
 {
     /**
-     * Define error handlers
-     */
-    private function __construct ($accessToken) {
-        self::$_accessToken = $accessToken;
-    }
-
-    /**
      * Hawk instance
      */
     private static $_instance;
-
-    /**
-     * Set private functions cause Singleton
-     */
-    private function __clone () {}
-    private function __sleep () {}
-    private function __wakeup () {}
 
     /**
      * Default Hawk server catcher URL
@@ -42,12 +29,33 @@ class HawkCatcher
 
     /**
      * Main instance method
+     *
+     * @param string $accessToken
+     * @param string $url
+     *
+     * @return HawkCatcher
+     *
+     * @throws MissingExtensionException
      */
-    public static function instance ($accessToken, $url = '') {
+    public static function instance($accessToken, $url = '')
+    {
+        /**
+         * If php-curl is not available then throw an exception
+         */
+        if (!extension_loaded('curl')) {
+            throw new MissingExtensionException('The cURL PHP extension is required to use the Hawk PHP Catcher');
+        }
+
+        /**
+         * Update Catcher's URL
+         */
         if ($url) {
             self::$_url = $url;
         }
 
+        /**
+         * Singleton
+         */
         if (!self::$_instance) {
             self::$_instance = new self($accessToken);
         }
@@ -56,77 +64,221 @@ class HawkCatcher
     }
 
     /**
-     * Enable Hawk handlers functions for Exceptions, Error and Shutdown.
+     * Enable Hawk handlers functions for Exceptions, Errors and Shutdowns
      *
-     * @param $exceptions (bool)       (TRUE) enable catching exceptions
-     * @param $errors (bool)           (TRUE) enable catching errors
-     * @param $shutdown (bool)         (TRUE) enable catching shutdown
+     * @example catch everything
+     * \Hawk\HawkCatcher::enableHandlers();
+     *
+     * @example catch only fatals
+     * \Hawk\HawkCatcher::enableHandlers(
+     *     FALSE,      // exceptions
+     *     FALSE,      // errors
+     *     TRUE        // shutdown
+     * );
+     *
+     * @example catch only target types of error
+     *          enter a bitmask of error types as second param
+     *          by default TRUE converts to E_ALL
+     * @see http://php.net/manual/en/errorfunc.constants.php
+     * \Hawk\HawkCatcher::enableHandlers(
+     *     FALSE,               // exceptions
+     *     E_WARNING | E_PARSE, // Run-time warnings or compile-time parse errors
+     *     TRUE                 // shutdown
+     * );
+     *
+     * @param bool         $exceptions (TRUE) enable catching exceptions
+     * @param bool|integer $errors     (TRUE) enable catching errors
+     *                                 You can pass a bitmask of error types
+     *                                 See an example above
+     * @param bool         $shutdown   (TRUE) enable catching shutdowns
+     *
+     * @return void
      */
-    static public function enableHandlers($exceptions = TRUE, $errors = TRUE, $shutdown = TRUE) {
-
+    public static function enableHandlers(
+        $exceptions = TRUE,
+        $errors = TRUE,
+        $shutdown = TRUE
+    ) {
+        /**
+         * Catch uncaught exceptions
+         */
         if ($exceptions) {
             set_exception_handler(array('\Hawk\HawkCatcher', 'catchException'));
         }
 
+        /**
+         * Catch errors
+         * By default if $errors equals True then catch all errors
+         */
+        $errors = $errors === TRUE ? null : $errors;
         if ($errors) {
-            set_error_handler(array('\Hawk\HawkCatcher', 'catchError'), E_ALL);
+            set_error_handler(array('\Hawk\HawkCatcher', 'catchError'), $errors);
         }
 
+        /**
+         * Catch fatal errors
+         */
         if ($shutdown) {
             register_shutdown_function(array('\Hawk\HawkCatcher', 'catchFatal'));
         }
     }
 
     /**
-     * Construct Exceptions and send them to Logs
+     * Process given exception
+     *
+     * @param \Exception $exception
+     * @param array $context array of data to be passed with event
+     *
+     * @return string
      */
-    static public function catchException ($exception) {
-        return self::prepare($exception->getCode(), $exception->getMessage(), $exception->getFile(), $exception->getLine(), array());
+    public static function catchException($exception, $context = array())
+    {
+        /**
+         * If $context is not array then clean it up
+         */
+        if (!is_array($context)) {
+            $context = array();
+        }
+
+        /**
+         * Process exception
+         */
+        return self::processException($exception, $context);
     }
 
     /**
-     * Works automatically. PHP would call this function on error by himself.
+     * Errors catcher. PHP would call this function on error by himself
+     *
+     * @param integer $errCode
+     * @param string $errMessage
+     * @param string $errFile
+     * @param integer $errLine
+     * @param mixed|array $context
+     *
+     * @return string|boolean
      */
-    static public function catchError ($errno, $errstr, $errfile, $errline, $errcontext) {
-        return self::prepare($errno, $errstr, $errfile, $errline, $errcontext);
+    public static function catchError($errCode, $errMessage, $errFile, $errLine, $context)
+    {
+        /**
+         * Create an exception with error's data
+         */
+        $exception = new \ErrorException($errMessage, $errCode, null,  $errFile, $errLine);
+
+        /**
+         * Process exception
+         *
+         * Ignore $context because there are global variables
+         * as POST, ENV, SERVER etc. We will get them later.
+         */
+        return self::processException($exception);
     }
 
     /**
      * Fatal errors catch method
+     * Being called on script exit
+     *
+     * @return string|boolean|void
      */
-    static public function catchFatal () {
+    public static function catchFatal()
+    {
+        /**
+         * Get the last occured error
+         */
         $error = error_get_last();
 
-        if ( $error['type'] ) {
-            return self::prepare($error['type'], $error['message'], $error['file'], $error['line'], array());
+        /**
+         * Check if last error has a message
+         * Otherwise the script has been executed successfully
+         */
+        if ($error['message']) {
+            /**
+             * Create an exception with error's data
+             */
+            $exception = new \ErrorException(
+                $error['message'],
+                $error['type'],
+                null,
+                $error['file'],
+                $error['line']
+            );
+
+            /**
+             * Process exception
+             */
+            return self::processException($exception);
         }
     }
 
     /**
      * Construct logs package and send them to service with access token
+     *
+     * @param \Exception $exception
+     * @param array $context array of data to be passed with event
+     *
+     * @return string
      */
-    private static function prepare ($errno, $errstr, $errfile, $errline, $errcontext) {
+    public static function processException($exception, $context = array())
+    {
+        if (empty($exception)) {
+            return "No exception was passed";
+        }
+
+        /**
+         * Get exception data
+         *
+         * If no code was passed then mark event as notice
+         */
+        $errCode = $exception->getCode() ?: E_NOTICE;
+        $errMessage = $exception->getMessage();
+        $errFile = $exception->getFile();
+        $errLine = $exception->getLine();
+
+        /**
+         * Get stack
+         */
+        $stack = Helper\Stack::buildStack($exception);
+
+        /**
+         * Compose event's data
+         */
         $data = array(
-            "error_type" => $errno,
-            "error_description" => $errstr,
-            "error_file" => $errfile,
-            "error_line" => $errline,
-            "error_context" => $errcontext,
-            "debug_backtrace" => debug_backtrace(),
-            'http_params' => $_SERVER,
+            /** Exception data */
+            "error_type" => $errCode,
+            "error_description" => $errMessage,
+            "error_file" => $errFile,
+            "error_line" => $errLine,
+            "error_context" => $context,
+            "debug_backtrace" => $stack,
+
+            /** Project's token */
             "access_token" => self::$_accessToken,
+
+            /** Environment variables */
+            "http_params" => $_SERVER,
             "GET" => $_GET,
-            "POST" => $_POST
+            "POST" => $_POST,
+            "COOKIES" => $_COOKIE,
+            "HEADERS" => Helper\Headers::get()
         );
 
+        /**
+         * Send event to Hawk
+         */
         return self::send($data);
     }
 
     /**
      * Send package to service defined by api_url from settings
+     *
+     * @param array $package
+     *
+     * @return string|bool - return string or bool
+     *                        'OK' on success server response
+     *                        'No access token' if no token was passed
+     *                        false if curl request was failed
      */
-    private static function send ($package) {
-
+    private static function send($package)
+    {
         if ( !self::$_accessToken ) {
             return "No access token";
         }
@@ -143,4 +295,21 @@ class HawkCatcher
 
         return $server_output;
     }
+
+    /**
+     * Set Project's access token
+     *
+     * @param string $accessToken
+     */
+    private function __construct($accessToken)
+    {
+        self::$_accessToken = $accessToken;
+    }
+
+    /**
+     * Set private functions cause Singleton
+     */
+    private function __clone() {}
+    private function __sleep() {}
+    private function __wakeup() {}
 }
