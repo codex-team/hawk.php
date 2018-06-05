@@ -77,7 +77,7 @@ class Headers
             /**
              * If this is header in $_SERVER without HTTP_ in the name
              */
-            } elseif (isset($otherHeadersVars[$name])) {
+            } elseif (in_array($name, $otherHeadersVars) && $value) {
                 $headers[$otherHeadersVars[$name]] = $value;
             }
         }
