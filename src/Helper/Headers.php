@@ -28,7 +28,7 @@ class Headers
             'CONTENT_TYPE'   => 'Content-Type',
             'CONTENT_LENGTH' => 'Content-Length',
             'CONTENT_MD5'    => 'Content-Md5'
-        ]
+        ];
 
         foreach ($_SERVER as $name => $value) {
             /**
