@@ -19,13 +19,13 @@ class Handler extends AbstractProcessingHandler
      * Contructor sets up a Hawk catcher
      *
      * @param string $token     Project's token from hawk.so
-     * @param string $url       path to catcher on custom server
      * @param int    $level     The minimum logging level at which this handler will be triggered
      * @param bool   $bubble    Whether the messages that are handled can bubble up the stack or not
+     * @param string $url       path to catcher on custom server
      *
      * @throws \Hawk\MissingExtensionException
      */
-    public function __construct($token, $url = null, $level = Logger::DEBUG, $bubble = true)
+    public function __construct($token, $level = Logger::DEBUG, $bubble = true, $url = null)
     {
         parent::__construct($level, $bubble);
 

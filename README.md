@@ -96,7 +96,7 @@ It catches provided errors/exception and ignores general logs.
 $logger = new \Monolog\Logger('hawk-test');
 
 $HAWK_TOKEN = 'abcd1234-1234-abcd-1234-123456abcdef';
-$logger->pushHandler(new \Hawk\Monolog\Handler($HAWK_TOKEN), \Monolog\Logger::DEBUG);
+$logger->pushHandler(new \Hawk\Monolog\Handler($HAWK_TOKEN, \Monolog\Logger::DEBUG));
 ```
 
 Now you can use logger's functions to process handled exceptions.
