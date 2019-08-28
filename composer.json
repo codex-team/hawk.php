@@ -1,16 +1,31 @@
 {
     "name": "codex-team/hawk.php",
     "description": "PHP errors Catcher module for Hawk.so",
+    "keywords": ["hawk", "catcher", "monolog"],
     "type": "library",
+    "version": "2.0.0-alpha",
     "license": "MIT",
     "require": {
         "ext-curl": "*",
-        "php": ">=5.3"
+        "php": "^7.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8.2"
     },
     "autoload": {
         "classmap": [
           "src/Hawk.php"
         ],
-        "psr-4": {"Hawk\\": "src/"}
+        "psr-4": {
+            "Hawk\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Hawk\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit --testdox"
     }
 }
