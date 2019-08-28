@@ -3,8 +3,8 @@
 namespace Hawk\Monolog;
 
 use Hawk\HawkCatcher;
-use Monolog\Logger;
 use Monolog\Handler\AbstractProcessingHandler;
+use Monolog\Logger;
 
 /**
  * Class MonologHandler
@@ -18,10 +18,10 @@ class Handler extends AbstractProcessingHandler
     /**
      * Contructor sets up a Hawk catcher
      *
-     * @param string $token     Project's token from hawk.so
-     * @param int    $level     The minimum logging level at which this handler will be triggered
-     * @param bool   $bubble    Whether the messages that are handled can bubble up the stack or not
-     * @param string $url       path to catcher on custom server
+     * @param string $token  Project's token from hawk.so
+     * @param int    $level  The minimum logging level at which this handler will be triggered
+     * @param bool   $bubble Whether the messages that are handled can bubble up the stack or not
+     * @param string $url    path to catcher on custom server
      *
      * @throws \Hawk\MissingExtensionException
      */
@@ -42,12 +42,12 @@ class Handler extends AbstractProcessingHandler
         /**
          * Get log context
          */
-        $context = isset($record['context']) ? $record['context'] : null;
+        $context = $record['context'] ?? null;
 
         /**
          * Try to get 'exception' property from 'context'
          */
-        $exception = isset($context['exception']) ? $context['exception'] : null;
+        $exception = $context['exception'] ?? null;
         unset($context['exception']);
 
         /**
@@ -58,25 +58,25 @@ class Handler extends AbstractProcessingHandler
             /**
              * Get exception message
              */
-            $message = isset($context['message']) ? $context['message'] : null;
+            $message = $context['message'] ?? null;
             unset($context['message']);
 
             /**
              * Get exception code
              */
-            $code = isset($context['code']) ? $context['code'] : null;
+            $code = $context['code'] ?? null;
             unset($context['code']);
 
             /**
              * Get path to file with exception
              */
-            $file = isset($context['file']) ? $context['file'] : null;
+            $file = $context['file'] ?? null;
             unset($context['file']);
 
             /**
              * Get line in the file exception
              */
-            $line = isset($context['line']) ? $context['line'] : null;
+            $line = $context['line'] ?? null;
             unset($context['line']);
 
             /**

@@ -8,6 +8,7 @@ use Hawk\Helper;
  * Hawk PHP Catcher
  *
  * @copyright CodeX Team
+ *
  * @see https://hawk.so/docs#add-server-handler
  */
 class HawkCatcher
@@ -79,6 +80,7 @@ class HawkCatcher
      * @example catch only target types of error
      *          enter a bitmask of error types as second param
      *          by default TRUE converts to E_ALL
+     *
      * @see http://php.net/manual/en/errorfunc.constants.php
      * \Hawk\HawkCatcher::enableHandlers(
      *     FALSE,               // exceptions
@@ -86,40 +88,40 @@ class HawkCatcher
      *     TRUE                 // shutdown
      * );
      *
-     * @param bool         $exceptions (TRUE) enable catching exceptions
-     * @param bool|integer $errors     (TRUE) enable catching errors
-     *                                 You can pass a bitmask of error types
-     *                                 See an example above
-     * @param bool         $shutdown   (TRUE) enable catching shutdowns
+     * @param bool     $exceptions (TRUE) enable catching exceptions
+     * @param bool|int $errors     (TRUE) enable catching errors
+     *                             You can pass a bitmask of error types
+     *                             See an example above
+     * @param bool     $shutdown   (TRUE) enable catching shutdowns
      *
      * @return void
      */
     public static function enableHandlers(
-        $exceptions = TRUE,
-        $errors = TRUE,
-        $shutdown = TRUE
+        $exceptions = true,
+        $errors = true,
+        $shutdown = true
     ) {
         /**
          * Catch uncaught exceptions
          */
         if ($exceptions) {
-            set_exception_handler(array('\Hawk\HawkCatcher', 'catchException'));
+            set_exception_handler(['\Hawk\HawkCatcher', 'catchException']);
         }
 
         /**
          * Catch errors
          * By default if $errors equals True then catch all errors
          */
-        $errors = $errors === TRUE ? null : $errors;
+        $errors = $errors === true ? null : $errors;
         if ($errors) {
-            set_error_handler(array('\Hawk\HawkCatcher', 'catchError'), $errors);
+            set_error_handler(['\Hawk\HawkCatcher', 'catchError'], $errors);
         }
 
         /**
          * Catch fatal errors
          */
         if ($shutdown) {
-            register_shutdown_function(array('\Hawk\HawkCatcher', 'catchFatal'));
+            register_shutdown_function(['\Hawk\HawkCatcher', 'catchFatal']);
         }
     }
 
@@ -127,17 +129,17 @@ class HawkCatcher
      * Process given exception
      *
      * @param \Exception $exception
-     * @param array $context array of data to be passed with event
+     * @param array      $context   array of data to be passed with event
      *
      * @return string
      */
-    public static function catchException($exception, $context = array())
+    public static function catchException($exception, $context = [])
     {
         /**
          * If $context is not array then clean it up
          */
         if (!is_array($context)) {
-            $context = array();
+            $context = [];
         }
 
         /**
@@ -149,20 +151,20 @@ class HawkCatcher
     /**
      * Errors catcher. PHP would call this function on error by himself
      *
-     * @param integer $errCode
-     * @param string $errMessage
-     * @param string $errFile
-     * @param integer $errLine
+     * @param int         $errCode
+     * @param string      $errMessage
+     * @param string      $errFile
+     * @param int         $errLine
      * @param mixed|array $context
      *
-     * @return string|boolean
+     * @return string|bool
      */
     public static function catchError($errCode, $errMessage, $errFile, $errLine, $context)
     {
         /**
          * Create an exception with error's data
          */
-        $exception = new \ErrorException($errMessage, $errCode, null,  $errFile, $errLine);
+        $exception = new \ErrorException($errMessage, $errCode, null, $errFile, $errLine);
 
         /**
          * Process exception
@@ -177,7 +179,7 @@ class HawkCatcher
      * Fatal errors catch method
      * Being called on script exit
      *
-     * @return string|boolean|void
+     * @return string|bool|void
      */
     public static function catchFatal()
     {
@@ -213,14 +215,14 @@ class HawkCatcher
      * Construct logs package and send them to service with access token
      *
      * @param \Exception $exception
-     * @param array $context array of data to be passed with event
+     * @param array      $context   array of data to be passed with event
      *
      * @return string
      */
-    public static function processException($exception, $context = array())
+    public static function processException($exception, $context = [])
     {
         if (empty($exception)) {
-            return "No exception was passed";
+            return 'No exception was passed';
         }
 
         /**
@@ -241,25 +243,25 @@ class HawkCatcher
         /**
          * Compose event's data
          */
-        $data = array(
+        $data = [
             /** Exception data */
-            "error_type" => $errCode,
-            "error_description" => $errMessage,
-            "error_file" => $errFile,
-            "error_line" => $errLine,
-            "error_context" => $context,
-            "debug_backtrace" => $stack,
+            'error_type'        => $errCode,
+            'error_description' => $errMessage,
+            'error_file'        => $errFile,
+            'error_line'        => $errLine,
+            'error_context'     => $context,
+            'debug_backtrace'   => $stack,
 
             /** Project's token */
-            "access_token" => self::$_accessToken,
+            'access_token' => self::$_accessToken,
 
             /** Environment variables */
-            "http_params" => $_SERVER,
-            "GET" => $_GET,
-            "POST" => $_POST,
-            "COOKIES" => $_COOKIE,
-            "HEADERS" => Helper\Headers::get()
-        );
+            'http_params' => $_SERVER,
+            'GET'         => $_GET,
+            'POST'        => $_POST,
+            'COOKIES'     => $_COOKIE,
+            'HEADERS'     => Helper\Headers::get()
+        ];
 
         /**
          * Send event to Hawk
@@ -273,21 +275,21 @@ class HawkCatcher
      * @param array $package
      *
      * @return string|bool - return string or bool
-     *                        'OK' on success server response
-     *                        'No access token' if no token was passed
-     *                        false if curl request was failed
+     *                     'OK' on success server response
+     *                     'No access token' if no token was passed
+     *                     false if curl request was failed
      */
     private static function send($package)
     {
-        if ( !self::$_accessToken ) {
-            return "No access token";
+        if (!self::$_accessToken) {
+            return 'No access token';
         }
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, self::$_url);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($package));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
         $server_output = curl_exec($ch);
@@ -309,7 +311,15 @@ class HawkCatcher
     /**
      * Set private functions cause Singleton
      */
-    private function __clone() {}
-    private function __sleep() {}
-    private function __wakeup() {}
+    private function __clone()
+    {
+    }
+
+    private function __sleep()
+    {
+    }
+
+    private function __wakeup()
+    {
+    }
 }

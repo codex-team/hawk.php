@@ -8,9 +8,9 @@ class Stack
      * Get path of file near target line to return as array
      *
      * @param string $filepath
-     * @param integer $line
-     * @param integer $margin max number of lines before and after target line
-     *                        to be returned
+     * @param int    $line
+     * @param int    $margin   max number of lines before and after target line
+     *                         to be returned
      *
      * @return array
      */
@@ -60,7 +60,7 @@ class Stack
                     /**
                      * Save real line
                      */
-                    'line' => $line + 1,
+                    'line'    => $line + 1,
                     'content' => $lineContent
                 ];
             }
@@ -168,8 +168,8 @@ class Stack
          * Add real error's path to trace chain
          */
         $stack[] = [
-            'file' => $errorPosition['file'],
-            'line' => $errorPosition['line'],
+            'file'  => $errorPosition['file'],
+            'line'  => $errorPosition['line'],
             'trace' => self::getAdjacentLines($errorPosition['file'], $errorPosition['line'])
         ];
 
