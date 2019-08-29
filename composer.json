@@ -15,9 +15,6 @@
         "friendsofphp/php-cs-fixer": "^2.15"
     },
     "autoload": {
-        "classmap": [
-          "src/Hawk.php"
-        ],
         "psr-4": {
             "Hawk\\": "src/"
         }
