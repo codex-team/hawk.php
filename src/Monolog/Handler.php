@@ -1,8 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Hawk\Monolog;
 
-use Hawk\HawkCatcher;
+use ErrorException;
+use Hawk\Catcher;
+use Hawk\Exception\MissingExtensionException;
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;
 
@@ -16,20 +20,20 @@ use Monolog\Logger;
 class Handler extends AbstractProcessingHandler
 {
     /**
-     * Contructor sets up a Hawk catcher
+     * Constructor sets up a Hawk catcher
      *
      * @param string $token  Project's token from hawk.so
      * @param int    $level  The minimum logging level at which this handler will be triggered
      * @param bool   $bubble Whether the messages that are handled can bubble up the stack or not
      * @param string $url    path to catcher on custom server
      *
-     * @throws \Hawk\MissingExtensionException
+     * @throws MissingExtensionException
      */
-    public function __construct($token, $level = Logger::DEBUG, $bubble = true, $url = null)
+    public function __construct(string $token, int $level = Logger::DEBUG, bool $bubble = true, string $url = '')
     {
         parent::__construct($level, $bubble);
 
-        HawkCatcher::instance($token, $url);
+        Catcher::instance($token, $url);
     }
 
     /**
@@ -37,7 +41,7 @@ class Handler extends AbstractProcessingHandler
      *
      * @param array $record
      */
-    protected function write(array $record)
+    protected function write(array $record): void
     {
         /**
          * Get log context
@@ -89,7 +93,7 @@ class Handler extends AbstractProcessingHandler
             /**
              * Create an exception to be throwen
              */
-            $exception = new \ErrorException(
+            $exception = new ErrorException(
                 $message,
                 $code,
                 null,
@@ -98,6 +102,6 @@ class Handler extends AbstractProcessingHandler
             );
         }
 
-        HawkCatcher::catchException($exception, $context);
+        Catcher::catchException($exception, $context);
     }
 }

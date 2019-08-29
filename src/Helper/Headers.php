@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Hawk\Helper;
 
 class Headers
@@ -17,7 +19,7 @@ class Headers
      *
      * @return array $headers
      */
-    public static function get()
+    public static function get(): array
     {
         $headers = [];
 
@@ -34,50 +36,18 @@ class Headers
             /**
              * If $_SERVER key starts with 'HTTP_' then it is a header
              */
-            if (substr($name, 0, 5) == 'HTTP_') {
-                /**
-                 * Remove HTTP_ from the start of key
-                 *
-                 * "HTTP_USER_AGENT" -> "USER_AGENT"
-                 */
-                $headerName = substr($name, 5);
-
-                /**
-                 * Replace all underscores to spaces
-                 *
-                 * "USER_AGENT" -> "USER AGENT"
-                 */
-                $headerName = str_replace('_', ' ', $headerName);
-
-                /**
-                 * Lowercase string
-                 *
-                 * "USER AGENT" -> "user agent"
-                 */
-                $headerName = strtolower($headerName);
-
-                /**
-                 * Uppercase words
-                 *
-                 * "user agent" -> "User Agent"
-                 */
-                $headerName = ucwords($headerName);
-
-                /**
-                 * Replace all spaces to hyphens
-                 *
-                 * "User Agent" -> "User-Agent"
-                 */
-                $headerName = str_replace(' ', '-', $headerName);
+            if (substr($name, 0, 5) === 'HTTP_') {
+                $headerName = self::prettifyHeaderName($name);
 
                 /**
                  * Save header with right key to separate array
                  */
                 $headers[$headerName] = $value;
+
             /**
              * If this is header in $_SERVER without HTTP_ in the name
              */
-            } elseif (in_array($name, $otherHeadersVars) && $value) {
+            } elseif ($value && in_array($name, $otherHeadersVars, true)) {
                 $headers[$otherHeadersVars[$name]] = $value;
             }
         }
@@ -120,5 +90,52 @@ class Headers
         ksort($headers);
 
         return $headers;
+    }
+
+    /**
+     * Convert header name to
+     *
+     * @param string $headerName
+     *
+     * @return string
+     */
+    private static function prettifyHeaderName(string $headerName): string
+    {
+        /**
+         * Remove HTTP_ from the start of key
+         *
+         * "HTTP_USER_AGENT" -> "USER_AGENT"
+         */
+        $headerName = substr($headerName, 5);
+
+        /**
+         * Replace all underscores to spaces
+         *
+         * "USER_AGENT" -> "USER AGENT"
+         */
+        $headerName = str_replace('_', ' ', $headerName);
+
+        /**
+         * Lowercase string
+         *
+         * "USER AGENT" -> "user agent"
+         */
+        $headerName = strtolower($headerName);
+
+        /**
+         * Uppercase words
+         *
+         * "user agent" -> "User Agent"
+         */
+        $headerName = ucwords($headerName);
+
+        /**
+         * Replace all spaces to hyphens
+         *
+         * "User Agent" -> "User-Agent"
+         */
+        $headerName = str_replace(' ', '-', $headerName);
+
+        return $headerName;
     }
 }

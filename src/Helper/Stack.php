@@ -1,6 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Hawk\Helper;
+
+use Throwable;
 
 class Stack
 {
@@ -14,7 +18,7 @@ class Stack
      *
      * @return array
      */
-    public static function getAdjacentLines($filepath, $line, $margin = 5)
+    public static function getAdjacentLines(string $filepath, int $line, int $margin = 5): array
     {
         /**
          * Get file as array of lines
@@ -80,11 +84,11 @@ class Stack
      * we will throw it away too. We have enough information to add this last
      * call manually.
      *
-     * @param \Exception $exception
+     * @param Throwable $exception
      *
      * @return array
      */
-    public static function buildStack($exception)
+    public static function buildStack(Throwable $exception): array
     {
         /**
          * If exception was not passed then return full backtrace

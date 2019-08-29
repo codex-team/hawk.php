@@ -1,6 +1,6 @@
 <?php
 
-namespace Hawk;
+namespace Hawk\Exception;
 
 /**
  * Exception can be thrown if an extension for an handler is missing
