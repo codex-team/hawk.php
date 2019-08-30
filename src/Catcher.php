@@ -284,14 +284,14 @@ class Catcher
      */
     private static function send(array $package): bool
     {
-        highlight_string("<?php\n" . var_export($package, true) . ";\n?>");
-
         $ch = curl_init();
+
         curl_setopt($ch, CURLOPT_URL, self::$url);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($package));
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+
         $serverOutput = curl_exec($ch);
         curl_close($ch);
 
