@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Hawk;
 
 use ErrorException;
-use Hawk\Exception\CurlRequestException;
 use Hawk\Exception\MissingExtensionException;
 use Throwable;
 
@@ -250,23 +249,24 @@ class Catcher
          * Compose event's data
          */
         $data = [
-            /** Exception data */
-            'error_type'        => $errCode,
-            'error_description' => $errMessage,
-            'error_file'        => $errFile,
-            'error_line'        => $errLine,
-            'error_context'     => $context,
-            'debug_backtrace'   => $stack,
+            'token'        => self::$accessToken,
+            'catcher_type' => 'errors/php',
+            'payload'      => [
+                /** Exception data */
+                'error_type'        => $errCode,
+                'error_description' => $errMessage,
+                'error_file'        => $errFile,
+                'error_line'        => $errLine,
+                'error_context'     => $context,
+                'debug_backtrace'   => $stack,
 
-            /** Project's token */
-            'access_token' => self::$accessToken,
-
-            /** Environment variables */
-            'http_params' => $_SERVER,
-            'GET'         => $_GET,
-            'POST'        => $_POST,
-            'COOKIES'     => $_COOKIE,
-            'HEADERS'     => Helper\Headers::get()
+                /** Environment variables */
+                'http_params' => $_SERVER,
+                'GET'         => $_GET,
+                'POST'        => $_POST,
+                'COOKIES'     => $_COOKIE,
+                'HEADERS'     => Helper\Headers::get()
+            ]
         ];
 
         /**
