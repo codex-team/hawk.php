@@ -42,7 +42,7 @@ class Catcher
      *
      * @throws MissingExtensionException
      */
-    public static function instance(string $accessToken, string $url = ''): self
+    public static function instance(string $accessToken, string $url = ''): Catcher
     {
         /**
          * If php-curl is not available then throw an exception
