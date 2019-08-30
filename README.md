@@ -23,7 +23,7 @@ $ composer require codex-team/hawk.php
 Create an instance with Token at the entry point of your project.
 
 ```php
-\Hawk\HawkCatcher::instance('abcd1234-1234-abcd-1234-123456abcdef');
+\Hawk\Catcher::instance('abcd1234-1234-abcd-1234-123456abcdef');
 ```
 
 ### Enable handlers
@@ -31,16 +31,16 @@ Create an instance with Token at the entry point of your project.
 By default Hawk will catch everything. You can run function with no params.
 
 ```php
-\Hawk\HawkCatcher::enableHandlers();
+\Hawk\Catcher::enableHandlers();
 ```
 
 It's similar to
 
 ```php
-\Hawk\HawkCatcher::enableHandlers(
-    TRUE,       // exceptions
-    TRUE,       // errors
-    TRUE        // shutdown
+\Hawk\Catcher::enableHandlers(
+    true,       // exceptions
+    true,       // errors
+    true        // shutdown
 );
 ```
 
@@ -48,19 +48,19 @@ You can pass types of errors you want to track:
 
 ```php
 // Catch run-time warnings or compile-time parse errors
-\Hawk\HawkCatcher::enableHandlers(
-    TRUE,                // exceptions
+\Hawk\Catcher::enableHandlers(
+    true,                // exceptions
     E_WARNING | E_PARSE, // errors
-    TRUE                 // shutdown
+    true                 // shutdown
 );
 ```
 
 ```php
 // Catch everything except notices
-\Hawk\HawkCatcher::enableHandlers(
-    TRUE,              // exceptions
+\Hawk\Catcher::enableHandlers(
+    true,              // exceptions
     E_ALL & ~E_NOTICE, // errors
-    TRUE               // shutdown
+    true               // shutdown
 );
 ```
 
@@ -72,7 +72,7 @@ You can catch exceptions manually with `catchException` method.
 try {
     throw new Exception("Error Processing Request", 1);
 } catch (Exception $e) {
-    \Hawk\HawkCatcher::catchException($e);
+    \Hawk\Catcher::catchException($e);
 }
 ```
 
