@@ -3,7 +3,7 @@
     "description": "PHP errors Catcher module for Hawk.so",
     "keywords": ["hawk", "php", "error", "catcher", "monolog"],
     "type": "library",
-    "version": "2.0.0-alpha",
+    "version": "2.0.0",
     "license": "MIT",
     "require": {
         "ext-curl": "*",
@@ -12,7 +12,8 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^8.2",
-        "friendsofphp/php-cs-fixer": "^2.15"
+        "friendsofphp/php-cs-fixer": "^2.15",
+        "symfony/var-dumper": "^5.2"
     },
     "autoload": {
         "psr-4": {

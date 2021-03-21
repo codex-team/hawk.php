@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Hawk;
 
-use ErrorException;
-use Hawk\Exception\MissingExtensionException;
+use Hawk\Helper\Stacktrace;
 use Throwable;
 
 /**
@@ -15,7 +14,7 @@ use Throwable;
  *
  * @see https://hawk.so/docs#add-server-handler
  */
-class Catcher
+final class Catcher
 {
     /**
      * Hawk instance
@@ -25,12 +24,12 @@ class Catcher
     /**
      * Default Hawk server catcher URL
      */
-    private static $url = 'https://hawk.so/catcher/php';
+    private $url = 'https://hawk.so/catcher/php';
 
     /**
      * Project access token. Generated on https://hawk.so
      */
-    private static $accessToken;
+    private $accessToken;
 
     /**
      * Main instance method
@@ -39,30 +38,25 @@ class Catcher
      * @param string $url
      *
      * @return Catcher
-     *
-     * @throws MissingExtensionException
      */
-    public static function instance(string $accessToken, string $url = ''): Catcher
+    public static function init(string $accessToken, string $url = ''): Catcher
     {
-        /**
-         * If php-curl is not available then throw an exception
-         */
-        if (!extension_loaded('curl')) {
-            throw new MissingExtensionException('The cURL PHP extension is required to use the Hawk PHP Catcher');
-        }
-
-        /**
-         * Update Catcher's URL
-         */
-        if ($url) {
-            self::$url = $url;
-        }
-
-        /**
-         * Singleton
-         */
         if (!self::$instance) {
-            self::$instance = new self($accessToken);
+            self::$instance = new self($accessToken, $url);
+        }
+
+        return self::$instance;
+    }
+
+    /**
+     * @return Catcher
+     *
+     * @throws \Exception
+     */
+    public static function get(): Catcher
+    {
+        if (!self::$instance) {
+            throw new \Exception('Init before');
         }
 
         return self::$instance;
@@ -72,9 +66,9 @@ class Catcher
      * Enable Hawk handlers functions for Exceptions, Errors and Shutdowns
      *
      * @example catch everything
-     * \Hawk\HawkCatcher::enableHandlers();
+     * \Hawk\Catcher::enableHandlers();
      * @example catch only fatals
-     * \Hawk\HawkCatcher::enableHandlers(
+     * \Hawk\Catcher::enableHandlers(
      *     false,      // exceptions
      *     false,      // errors
      *     true        // shutdown
@@ -84,7 +78,7 @@ class Catcher
      *          by default TRUE converts to E_ALL
      *
      * @see http://php.net/manual/en/errorfunc.constants.php
-     * \Hawk\HawkCatcher::enableHandlers(
+     * \Hawk\Catcher::enableHandlers(
      *     false,               // exceptions
      *     E_WARNING | E_PARSE, // Run-time warnings or compile-time parse errors
      *     true                 // shutdown
@@ -98,16 +92,13 @@ class Catcher
      *
      * @return void
      */
-    public static function enableHandlers(
-        bool $exceptions = true,
-        $errors = true,
-        bool $shutdown = true
-    ): void {
+    public function enableHandlers(bool $exceptions = true, bool $errors = true, bool $shutdown = true): void
+    {
         /**
          * Catch uncaught exceptions
          */
         if ($exceptions) {
-            set_exception_handler([Catcher::class, 'catchException']);
+            set_exception_handler([$this, 'catchException']);
         }
 
         /**
@@ -116,15 +107,26 @@ class Catcher
          */
         $errors = $errors === true ? null : $errors;
         if ($errors) {
-            set_error_handler([Catcher::class, 'catchError'], $errors);
+            set_error_handler([$this, 'catchError'], $errors);
         }
 
         /**
          * Catch fatal errors
          */
         if ($shutdown) {
-            register_shutdown_function([Catcher::class, 'catchFatal']);
+            register_shutdown_function([$this, 'catchFatal']);
         }
+    }
+
+    /**
+     * @param array $payload
+     */
+    public function catchEvent(array $payload)
+    {
+        $event = new Event();
+        $event->setEventPayload(new EventPayload($payload));
+
+        $this->send($event);
     }
 
     /**
@@ -132,54 +134,59 @@ class Catcher
      *
      * @param Throwable $exception
      * @param array     $context   array of data to be passed with event
-     *
-     * @return bool
      */
-    public static function catchException(Throwable $exception, array $context = []): bool
+    public function catchException(Throwable $exception, array $context = []): void
     {
-        /**
-         * If $context is not array then clean it up
-         */
-        if (!is_array($context)) {
-            $context = [];
+        $payload = [
+            'title'     => $exception->getMessage(),
+            'type'      => '',
+            'timestamp' => time(),
+            'level'     => 1
+        ];
+
+        // Prepare GET params
+        if (!empty($_GET)) {
+            $payload['getParams'] = $_GET;
         }
 
-        /**
-         * Process exception
-         */
-        return self::processException($exception, $context);
+        // Prepare POST params
+        if (!empty($_POST)) {
+            $payload['postParams'] = $_POST;
+        }
+
+        if (!empty($context)) {
+            $payload['context'] = $context;
+        }
+
+        $payload['backtrace'] = Stacktrace::buildStack($exception);
+
+        $event = new Event();
+        $event->setEventPayload(new EventPayload($payload));
+
+        $this->send($event);
     }
 
     /**
      * Errors catcher. PHP would call this function on error by himself
      *
-     * @param int    $errCode
-     * @param string $errMessage
-     * @param string $errFile
-     * @param int    $errLine
+     * @param string $message
+     * @param string $file
+     * @param int    $code
+     * @param int    $line
      * @param array  $context
      *
      * @return bool
      */
-    public static function catchError(
-        int $errCode,
-        string $errMessage,
-        string $errFile,
-        int $errLine,
-        array $context
-    ): bool {
-        /**
-         * Create an exception with error's data
-         */
-        $exception = new ErrorException($errMessage, $errCode, null, $errFile, $errLine);
+    public function catchError(string $message, string $file, int $code, int $line, array $context = []): void
+    {
+        $payload = [
 
-        /**
-         * Process exception
-         *
-         * Ignore $context because there are global variables
-         * as POST, ENV, SERVER etc. We will get them later.
-         */
-        return self::processException($exception);
+        ];
+
+        $event = new Event();
+        $event->setEventPayload(new EventPayload($payload));
+
+        $this->send($event);
     }
 
     /**
@@ -188,91 +195,42 @@ class Catcher
      *
      * @return bool|null
      */
-    public static function catchFatal(): ?bool
+    public function catchFatal(): void
     {
-        /**
-         * Get the last occurred error
-         */
         $error = error_get_last();
+        $payload = [
+            'title'     => $error['message'],
+            'type'      => $error['type'],
+            'timestamp' => time(),
+        ];
 
-        /**
-         * Check if last error has a message
-         * Otherwise the script has been executed successfully
-         */
-        if ($error['message']) {
-            /**
-             * Create an exception with error's data
-             */
-            $exception = new ErrorException(
-                $error['message'],
-                $error['type'],
-                null,
-                $error['file'],
-                $error['line']
-            );
+        $event = new Event();
+        $event->setEventPayload(new EventPayload($payload));
 
-            /**
-             * Process exception
-             */
-            return self::processException($exception);
-        }
-
-        return null;
+        $this->send($event);
     }
 
     /**
-     * Construct logs package and send them to service with access token
+     * Set Project's access token
      *
-     * @param Throwable $exception
-     * @param array     $context   array of data to be passed with event
-     *
-     * @return bool
+     * @param string $accessToken
+     * @param string $url
      */
-    public static function processException(Throwable $exception, array $context = []): bool
+    private function __construct(string $accessToken, string $url = '')
     {
-        /**
-         * Get exception data
-         *
-         * If no code was passed then mark event as notice
-         */
-        $errCode = $exception->getCode() ?: E_NOTICE;
-        $errMessage = $exception->getMessage();
-        $errFile = $exception->getFile();
-        $errLine = $exception->getLine();
+        $this->accessToken = $accessToken;
 
-        /**
-         * Get stack
-         */
-        $stack = Helper\Stack::buildStack($exception);
+        if (!empty($url)) {
+            $this->url = $url;
+        }
+    }
 
-        /**
-         * Compose event's data
-         */
-        $data = [
-            'token'        => self::$accessToken,
-            'catcher_type' => 'errors/php',
-            'payload'      => [
-                /** Exception data */
-                'error_type'        => $errCode,
-                'error_description' => $errMessage,
-                'error_file'        => $errFile,
-                'error_line'        => $errLine,
-                'error_context'     => $context,
-                'debug_backtrace'   => $stack,
-
-                /** Environment variables */
-                'http_params' => $_SERVER,
-                'GET'         => $_GET,
-                'POST'        => $_POST,
-                'COOKIES'     => $_COOKIE,
-                'HEADERS'     => Helper\Headers::get()
-            ]
-        ];
-
-        /**
-         * Send event to Hawk
-         */
-        return self::send($data);
+    /**
+     * @param Event $event
+     */
+    private function send(Event $event): void
+    {
+        dd(json_encode($event));
     }
 
     /**
@@ -282,44 +240,8 @@ class Catcher
      *
      * @return bool - return true on success and false otherwise
      */
-    private static function send(array $package): bool
+    private function _send(array $package): bool
     {
-        $ch = curl_init();
-
-        curl_setopt($ch, CURLOPT_URL, self::$url);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($package));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-
-        $serverOutput = curl_exec($ch);
-        curl_close($ch);
-
-        return (bool) $serverOutput;
-    }
-
-    /**
-     * Set Project's access token
-     *
-     * @param string $accessToken
-     */
-    private function __construct(string $accessToken)
-    {
-        self::$accessToken = $accessToken;
-    }
-
-    /**
-     * Set private functions cause Singleton
-     */
-    private function __clone()
-    {
-    }
-
-    private function __sleep()
-    {
-    }
-
-    private function __wakeup()
-    {
+        return false;
     }
 }

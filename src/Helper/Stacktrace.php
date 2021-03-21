@@ -6,73 +6,8 @@ namespace Hawk\Helper;
 
 use Throwable;
 
-class Stack
+final class Stacktrace
 {
-    /**
-     * Get path of file near target line to return as array
-     *
-     * @param string $filepath
-     * @param int    $line
-     * @param int    $margin   max number of lines before and after target line
-     *                         to be returned
-     *
-     * @return array
-     */
-    public static function getAdjacentLines(string $filepath, int $line, int $margin = 5): array
-    {
-        /**
-         * Get file as array of lines
-         */
-        $fileLines = file($filepath);
-
-        /**
-         * In the file lines are counted from 1 but in array first element
-         * is on 0 position. So to get line position in array
-         * we need to decrease real line by 1
-         */
-        $errorLineInArray = $line - 1;
-
-        /**
-         * Get upper and lower lines positions to return part of file
-         */
-        $firstLine = $errorLineInArray - $margin;
-        $lastLine = $errorLineInArray + $margin;
-
-        /**
-         * Create an empty array to be returned
-         */
-        $nearErrorFileLines = [];
-
-        /**
-         * Read file from $firstLine to $lastLine by lines
-         */
-        for ($line = $firstLine; $line <= $lastLine; $line++) {
-            /**
-             * Check if line doesn't exist. For elements positions in array before 0
-             * and after end of file will be returned NULL
-             */
-            if (!empty($fileLines[$line])) {
-                /**
-                 * Escape HTML chars
-                 */
-                $lineContent = htmlspecialchars($fileLines[$line]);
-
-                /**
-                 * Add new line
-                 */
-                $nearErrorFileLines[] = [
-                    /**
-                     * Save real line
-                     */
-                    'line'    => $line + 1,
-                    'content' => $lineContent
-                ];
-            }
-        }
-
-        return $nearErrorFileLines;
-    }
-
     /**
      * Build exception backtrace.
      *
@@ -188,5 +123,70 @@ class Stack
         $stack = array_reverse($stack);
 
         return $stack;
+    }
+
+    /**
+     * Get path of file near target line to return as array
+     *
+     * @param string $filepath
+     * @param int    $line
+     * @param int    $margin   max number of lines before and after target line
+     *                         to be returned
+     *
+     * @return array
+     */
+    private static function getAdjacentLines(string $filepath, int $line, int $margin = 5): array
+    {
+        /**
+         * Get file as array of lines
+         */
+        $fileLines = file($filepath);
+
+        /**
+         * In the file lines are counted from 1 but in array first element
+         * is on 0 position. So to get line position in array
+         * we need to decrease real line by 1
+         */
+        $errorLineInArray = $line - 1;
+
+        /**
+         * Get upper and lower lines positions to return part of file
+         */
+        $firstLine = $errorLineInArray - $margin;
+        $lastLine = $errorLineInArray + $margin;
+
+        /**
+         * Create an empty array to be returned
+         */
+        $nearErrorFileLines = [];
+
+        /**
+         * Read file from $firstLine to $lastLine by lines
+         */
+        for ($line = $firstLine; $line <= $lastLine; $line++) {
+            /**
+             * Check if line doesn't exist. For elements positions in array before 0
+             * and after end of file will be returned NULL
+             */
+            if (!empty($fileLines[$line])) {
+                /**
+                 * Escape HTML chars
+                 */
+                $lineContent = htmlspecialchars($fileLines[$line]);
+
+                /**
+                 * Add new line
+                 */
+                $nearErrorFileLines[] = [
+                    /**
+                     * Save real line
+                     */
+                    'line'    => $line + 1,
+                    'content' => $lineContent
+                ];
+            }
+        }
+
+        return $nearErrorFileLines;
     }
 }
