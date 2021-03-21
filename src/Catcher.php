@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Hawk;
 
-use Hawk\Helper\Stacktrace;
+use ErrorException;
+use Hawk\Util\Stacktrace;
 use Throwable;
 
 /**
@@ -55,8 +56,8 @@ final class Catcher
      */
     public static function get(): Catcher
     {
-        if (!self::$instance) {
-            throw new \Exception('Init before');
+        if (self::$instance === null) {
+            throw new \Exception('Catcher is not initialized');
         }
 
         return self::$instance;
@@ -180,8 +181,18 @@ final class Catcher
     public function catchError(string $message, string $file, int $code, int $line, array $context = []): void
     {
         $payload = [
-
+            'title'     => $message,
+            'type'      => '',
+            'timestamp' => time(),
+            'level'     => 1
         ];
+
+        if (!empty($context)) {
+            $payload['context'] = $context;
+        }
+
+        $exception = new ErrorException($message, $code, 1, $file, $line);
+        $payload['backtrace'] = \Hawk\Util\Stacktrace::buildStack($exception);
 
         $event = new Event();
         $event->setEventPayload(new EventPayload($payload));
@@ -203,6 +214,9 @@ final class Catcher
             'type'      => $error['type'],
             'timestamp' => time(),
         ];
+
+        $exception = new ErrorException($error['message'], $error['code'], 1, $error['file'], $error['line']);
+        $payload['backtrace'] = \Hawk\Util\Stacktrace::buildStack($exception);
 
         $event = new Event();
         $event->setEventPayload(new EventPayload($payload));
@@ -226,22 +240,12 @@ final class Catcher
     }
 
     /**
+     * Send package to service defined by api_url from settings
+     *
      * @param Event $event
      */
     private function send(Event $event): void
     {
         dd(json_encode($event));
-    }
-
-    /**
-     * Send package to service defined by api_url from settings
-     *
-     * @param array $package
-     *
-     * @return bool - return true on success and false otherwise
-     */
-    private function _send(array $package): bool
-    {
-        return false;
     }
 }

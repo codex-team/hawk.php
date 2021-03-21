@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Hawk\Helper;
+namespace Hawk\Util;
 
 use Throwable;
 
