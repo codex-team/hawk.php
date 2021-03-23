@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Hawk;
 
+/**
+ * @package Hawk
+ */
 final class Event implements \JsonSerializable
 {
     /**
@@ -12,19 +15,32 @@ final class Event implements \JsonSerializable
     private $catcherType = 'error/php';
 
     /**
+     * @var string
+     */
+    private $accessToken = '';
+
+    /**
+     * Events payload corresponding to Hawk format
+     *
      * @var EventPayload
      */
     private $eventPayload;
 
     /**
-     * @return string
+     * Event constructor.
+     *
+     * @param string       $accessToken
+     * @param EventPayload $eventPayload
      */
-    public function getCatcherType(): string
+    public function __construct(string $accessToken, EventPayload $eventPayload)
     {
-        return $this->catcherType;
+        $this->accessToken = $accessToken;
+        $this->eventPayload = $eventPayload;
     }
 
     /**
+     * Returns event payload
+     *
      * @return EventPayload
      */
     public function getEventPayload(): EventPayload
@@ -33,25 +49,14 @@ final class Event implements \JsonSerializable
     }
 
     /**
-     * @param EventPayload $eventPayload
-     *
-     * @return $this
-     */
-    public function setEventPayload(EventPayload $eventPayload): self
-    {
-        $this->eventPayload = $eventPayload;
-
-        return $this;
-    }
-
-    /**
      * @return array
      */
     public function jsonSerialize()
     {
         return [
-            'catcherType'  => $this->getCatcherType(),
-            'eventPayload' => $this->getEventPayload()
+            'token'        => $this->accessToken,
+            'catcherType'  => $this->catcherType,
+            'payload'      => $this->getEventPayload()
         ];
     }
 }

@@ -1,9 +1,10 @@
 <?php
 
-require_once 'vendor/autoload.php';
+require_once './vendor/autoload.php';
 
-\Hawk\Catcher::init('sdfsdf')
+$stub = new \Hawk\Tests\Stub();
+
+\Hawk\Catcher::init('token')
     ->enableHandlers();
 
-$t = new \Hawk\Testing();
-$t->test();
+$stub->test();

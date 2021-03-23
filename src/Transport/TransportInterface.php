@@ -13,5 +13,19 @@ use Hawk\Event;
  */
 interface TransportInterface
 {
-    public function send(Event $event): void;
+    /**
+     * Returns URL that object must send an Event
+     *
+     * @return string
+     */
+    public function getUrl(): string;
+
+    /**
+     * Sends an Event
+     *
+     * @param Event $event
+     *
+     * @return mixed
+     */
+    public function send(Event $event);
 }

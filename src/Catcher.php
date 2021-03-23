@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Hawk;
 
-use ErrorException;
-use Hawk\Util\Stacktrace;
+use Hawk\Transport\CurlTransport;
 use Throwable;
 
 /**
- * Hawk PHP Catcher
+ * Hawk PHP Catcher SDK
  *
  * @copyright CodeX Team
  *
@@ -18,22 +17,28 @@ use Throwable;
 final class Catcher
 {
     /**
-     * Hawk instance
+     * Catcher SDK private instance. Created once
+     *
+     * @var Catcher
      */
     private static $instance;
 
     /**
      * Default Hawk server catcher URL
+     *
+     * @var string
      */
     private $url = 'https://hawk.so/catcher/php';
 
     /**
-     * Project access token. Generated on https://hawk.so
+     * SDK handler: contains methods that catchs errors and exceptions
+     *
+     * @var Handler
      */
-    private $accessToken;
+    private $handler;
 
     /**
-     * Main instance method
+     * Static method to initialize Catcher
      *
      * @param string $accessToken
      * @param string $url
@@ -50,6 +55,8 @@ final class Catcher
     }
 
     /**
+     * Returns initialized instance or throws an exception if it is not created yet
+     *
      * @return Catcher
      *
      * @throws \Exception
@@ -64,12 +71,12 @@ final class Catcher
     }
 
     /**
-     * Enable Hawk handlers functions for Exceptions, Errors and Shutdowns
+     * Enable Catcher handlers functions for Exceptions, Errors and Shutdowns
      *
      * @example catch everything
-     * \Hawk\Catcher::enableHandlers();
+     * \Hawk\Catcher::init()->enableHandlers();
      * @example catch only fatals
-     * \Hawk\Catcher::enableHandlers(
+     * \Hawk\Catcher::init()->enableHandlers(
      *     false,      // exceptions
      *     false,      // errors
      *     true        // shutdown
@@ -79,7 +86,7 @@ final class Catcher
      *          by default TRUE converts to E_ALL
      *
      * @see http://php.net/manual/en/errorfunc.constants.php
-     * \Hawk\Catcher::enableHandlers(
+     * \Hawk\Catcher::init()->enableHandlers(
      *     false,               // exceptions
      *     E_WARNING | E_PARSE, // Run-time warnings or compile-time parse errors
      *     true                 // shutdown
@@ -89,17 +96,17 @@ final class Catcher
      * @param bool|int $errors     (true) enable catching errors
      *                             You can pass a bitmask of error types
      *                             See an example above
-     * @param bool     $shutdown   (true) enable catching shutdowns
+     * @param bool     $shutdown   (false) enable catching shutdowns
      *
      * @return void
      */
-    public function enableHandlers(bool $exceptions = true, bool $errors = true, bool $shutdown = true): void
+    public function enableHandlers(bool $exceptions = true, $errors = true, bool $shutdown = false): void
     {
         /**
          * Catch uncaught exceptions
          */
         if ($exceptions) {
-            set_exception_handler([$this, 'catchException']);
+            set_exception_handler([$this->handler, 'catchException']);
         }
 
         /**
@@ -108,144 +115,59 @@ final class Catcher
          */
         $errors = $errors === true ? null : $errors;
         if ($errors) {
-            set_error_handler([$this, 'catchError'], $errors);
+            set_error_handler([$this->handler, 'catchError'], $errors);
         }
 
         /**
          * Catch fatal errors
          */
         if ($shutdown) {
-            register_shutdown_function([$this, 'catchFatal']);
+            register_shutdown_function([$this->handler, 'catchFatal']);
         }
     }
 
     /**
      * @param array $payload
+     *
+     * @example
+     * \Hawk\Catcher::get()
+     *  ->catchEvent([
+     *      'message' => 'my special message'
+     *  ])
      */
     public function catchEvent(array $payload)
     {
-        $event = new Event();
-        $event->setEventPayload(new EventPayload($payload));
-
-        $this->send($event);
+        $this->handler->catchEvent($payload);
     }
 
     /**
-     * Process given exception
+     * @param Throwable $throwable
+     * @param array     $context
      *
-     * @param Throwable $exception
-     * @param array     $context   array of data to be passed with event
+     * @example
+     * \Hawk\Catcher::get()
+     *  ->catchException($exception, [
+     *      'message' => 'my special message'
+     *  ])
      */
-    public function catchException(Throwable $exception, array $context = []): void
+    public function catchException(Throwable $throwable, array $context = [])
     {
-        $payload = [
-            'title'     => $exception->getMessage(),
-            'type'      => '',
-            'timestamp' => time(),
-            'level'     => 1
-        ];
-
-        // Prepare GET params
-        if (!empty($_GET)) {
-            $payload['getParams'] = $_GET;
-        }
-
-        // Prepare POST params
-        if (!empty($_POST)) {
-            $payload['postParams'] = $_POST;
-        }
-
-        if (!empty($context)) {
-            $payload['context'] = $context;
-        }
-
-        $payload['backtrace'] = Stacktrace::buildStack($exception);
-
-        $event = new Event();
-        $event->setEventPayload(new EventPayload($payload));
-
-        $this->send($event);
+        $this->handler->catchException($throwable);
     }
 
     /**
-     * Errors catcher. PHP would call this function on error by himself
-     *
-     * @param string $message
-     * @param string $file
-     * @param int    $code
-     * @param int    $line
-     * @param array  $context
-     *
-     * @return bool
-     */
-    public function catchError(string $message, string $file, int $code, int $line, array $context = []): void
-    {
-        $payload = [
-            'title'     => $message,
-            'type'      => '',
-            'timestamp' => time(),
-            'level'     => 1
-        ];
-
-        if (!empty($context)) {
-            $payload['context'] = $context;
-        }
-
-        $exception = new ErrorException($message, $code, 1, $file, $line);
-        $payload['backtrace'] = \Hawk\Util\Stacktrace::buildStack($exception);
-
-        $event = new Event();
-        $event->setEventPayload(new EventPayload($payload));
-
-        $this->send($event);
-    }
-
-    /**
-     * Fatal errors catch method
-     * Being called on script exit
-     *
-     * @return bool|null
-     */
-    public function catchFatal(): void
-    {
-        $error = error_get_last();
-        $payload = [
-            'title'     => $error['message'],
-            'type'      => $error['type'],
-            'timestamp' => time(),
-        ];
-
-        $exception = new ErrorException($error['message'], $error['code'], 1, $error['file'], $error['line']);
-        $payload['backtrace'] = \Hawk\Util\Stacktrace::buildStack($exception);
-
-        $event = new Event();
-        $event->setEventPayload(new EventPayload($payload));
-
-        $this->send($event);
-    }
-
-    /**
-     * Set Project's access token
-     *
      * @param string $accessToken
      * @param string $url
      */
     private function __construct(string $accessToken, string $url = '')
     {
-        $this->accessToken = $accessToken;
-
-        if (!empty($url)) {
-            $this->url = $url;
+        if (empty($url)) {
+            $url = $this->url;
         }
-    }
 
-    /**
-     * Send package to service defined by api_url from settings
-     *
-     * @param Event $event
-     */
-    private function send(Event $event): void
-    {
-        dd(json_encode($event));
+        $this->handler = new Handler(
+            new CurlTransport($url),
+            $accessToken
+        );
     }
 }

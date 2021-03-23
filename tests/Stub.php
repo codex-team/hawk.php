@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Hawk;
+namespace Hawk\Tests;
 
-class Testing
+class Stub
 {
     public function test()
     {
@@ -18,6 +18,6 @@ class Testing
 
     private function bar()
     {
-        throw new \Exception("sdfdsf");
+        throw new \Exception('sdfdsf');
     }
 }

@@ -14,7 +14,6 @@ final class EventPayload implements \JsonSerializable
     private $title = '';
 
     /**
-     * @todo descripbe PHP types
      * Events error type
      *
      * @var int
@@ -45,7 +44,7 @@ final class EventPayload implements \JsonSerializable
     /**
      * Events stacktrace
      *
-     * @var Backtrace[]
+     * @var array
      */
     private $backtrace;
 
