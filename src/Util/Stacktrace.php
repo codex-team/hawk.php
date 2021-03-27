@@ -6,6 +6,11 @@ namespace Hawk\Util;
 
 use Throwable;
 
+/**
+ * Class Stacktrace
+ *
+ * @package Hawk\Util
+ */
 final class Stacktrace
 {
     /**
@@ -25,13 +30,6 @@ final class Stacktrace
      */
     public static function buildStack(Throwable $exception): array
     {
-        /**
-         * If exception was not passed then return full backtrace
-         */
-        if (!isset($exception)) {
-            return debug_backtrace();
-        }
-
         /**
          * Get trace to exception
          */

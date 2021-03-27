@@ -13,12 +13,10 @@ use Hawk\Event;
  */
 class GuzzleTransport implements TransportInterface
 {
-    private $guzzle;
     private $url;
 
     public function __construct(string $url)
     {
-//        $this->guzzle = ...
         $this->url = $url;
     }
 

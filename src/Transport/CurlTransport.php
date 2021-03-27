@@ -7,13 +7,15 @@ namespace Hawk\Transport;
 use Hawk\Event;
 
 /**
- * Class CurlTransport
+ * Class CurlTransport is a transport object
  *
  * @package Hawk\Transport
  */
 class CurlTransport implements TransportInterface
 {
     /**
+     * URL to send occurred event
+     *
      * @var string
      */
     private $url;

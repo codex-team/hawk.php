@@ -24,13 +24,6 @@ final class Catcher
     private static $instance;
 
     /**
-     * Default Hawk server catcher URL
-     *
-     * @var string
-     */
-    private $url = 'https://hawk.so/catcher/php';
-
-    /**
      * SDK handler: contains methods that catchs errors and exceptions
      *
      * @var Handler
@@ -40,15 +33,14 @@ final class Catcher
     /**
      * Static method to initialize Catcher
      *
-     * @param string $accessToken
-     * @param string $url
+     * @param array $options
      *
      * @return Catcher
      */
-    public static function init(string $accessToken, string $url = ''): Catcher
+    public static function init(array $options): Catcher
     {
         if (!self::$instance) {
-            self::$instance = new self($accessToken, $url);
+            self::$instance = new self($options);
         }
 
         return self::$instance;
@@ -68,62 +60,6 @@ final class Catcher
         }
 
         return self::$instance;
-    }
-
-    /**
-     * Enable Catcher handlers functions for Exceptions, Errors and Shutdowns
-     *
-     * @example catch everything
-     * \Hawk\Catcher::init()->enableHandlers();
-     * @example catch only fatals
-     * \Hawk\Catcher::init()->enableHandlers(
-     *     false,      // exceptions
-     *     false,      // errors
-     *     true        // shutdown
-     * );
-     * @example catch only target types of error
-     *          enter a bitmask of error types as second param
-     *          by default TRUE converts to E_ALL
-     *
-     * @see http://php.net/manual/en/errorfunc.constants.php
-     * \Hawk\Catcher::init()->enableHandlers(
-     *     false,               // exceptions
-     *     E_WARNING | E_PARSE, // Run-time warnings or compile-time parse errors
-     *     true                 // shutdown
-     * );
-     *
-     * @param bool     $exceptions (true) enable catching exceptions
-     * @param bool|int $errors     (true) enable catching errors
-     *                             You can pass a bitmask of error types
-     *                             See an example above
-     * @param bool     $shutdown   (false) enable catching shutdowns
-     *
-     * @return void
-     */
-    public function enableHandlers(bool $exceptions = true, $errors = true, bool $shutdown = false): void
-    {
-        /**
-         * Catch uncaught exceptions
-         */
-        if ($exceptions) {
-            set_exception_handler([$this->handler, 'catchException']);
-        }
-
-        /**
-         * Catch errors
-         * By default if $errors equals True then catch all errors
-         */
-        $errors = $errors === true ? null : $errors;
-        if ($errors) {
-            set_error_handler([$this->handler, 'catchError'], $errors);
-        }
-
-        /**
-         * Catch fatal errors
-         */
-        if ($shutdown) {
-            register_shutdown_function([$this->handler, 'catchFatal']);
-        }
     }
 
     /**
@@ -156,18 +92,15 @@ final class Catcher
     }
 
     /**
-     * @param string $accessToken
-     * @param string $url
+     * @param array $options
      */
-    private function __construct(string $accessToken, string $url = '')
+    private function __construct(array $options)
     {
-        if (empty($url)) {
-            $url = $this->url;
-        }
+        $options = new Options($options);
+        $factory = new EventPayloadFactory();
+        $transport = new CurlTransport($options->getUrl());
 
-        $this->handler = new Handler(
-            new CurlTransport($url),
-            $accessToken
-        );
+        $this->handler = new Handler($options, $transport, $factory);
+        $this->handler->enableHandlers();
     }
 }

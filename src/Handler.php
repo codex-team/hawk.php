@@ -6,57 +6,68 @@ namespace Hawk;
 
 use ErrorException;
 use Hawk\Transport\TransportInterface;
-use Hawk\Util\Stacktrace;
 use Throwable;
 
 /**
- * Class Handler
+ * Class Handler is responsible for enabling and handling any occurred errors on application
  *
  * @package Hawk
  */
-class Handler
+final class Handler
 {
     /**
+     * Options object
+     *
+     * @var Options
+     */
+    private $options;
+
+    /**
+     * Transport object
+     *
      * @var TransportInterface
      */
     private $transport;
 
     /**
-     * Project access token. Generated on https://hawk.so
+     * Events payload factory object
      *
-     * @var string
+     * @var EventPayloadFactory
      */
-    private $accessToken;
+    private $eventPayloadFactory;
 
     /**
      * Handler constructor.
      *
-     * @param TransportInterface $transport
-     * @param string             $accessToken
+     * @param Options             $options
+     * @param TransportInterface  $transport
+     * @param EventPayloadFactory $eventPayloadFactory
      */
-    public function __construct(TransportInterface $transport, string $accessToken)
-    {
+    public function __construct(
+        Options $options,
+        TransportInterface $transport,
+        EventPayloadFactory $eventPayloadFactory
+    ) {
+        $this->options = $options;
         $this->transport = $transport;
-        $this->accessToken = $accessToken;
+        $this->eventPayloadFactory = $eventPayloadFactory;
     }
 
     /**
-     * Method to send any event to Hawk
+     * Method to send manually any event to Hawk
      *
      * @param array $payload
      */
     public function catchEvent(array $payload): void
     {
-        $event = new Event(
-            $this->accessToken,
-            new EventPayload($payload)
-        );
+        $eventPayload = $this->eventPayloadFactory->create($payload);
+        $event = $this->prepareEvent($eventPayload);
 
         $this->send($event);
     }
 
     /**
-     * Process exception and sent to Hawk
+     * Process exception and send to Hawk
      *
      * @param Throwable $exception
      * @param array     $context   array of data to be passed with event
@@ -64,69 +75,101 @@ class Handler
     public function catchException(Throwable $exception, array $context = []): void
     {
         $payload = [
-            'title'     => $exception->getMessage(),
+            'exception' => $exception,
             'context'   => $context,
-            'backtrace' => Stacktrace::buildStack($exception)
         ];
 
-        $event = new Event(
-            $this->accessToken,
-            new EventPayload($payload)
-        );
+        $eventPayload = $this->eventPayloadFactory->create($payload);
+        $event = $this->prepareEvent($eventPayload);
 
         $this->send($event);
     }
 
     /**
-     * Catches error and sends to the Hawk
+     * Catches error and sends to Hawk
      *
+     * @param int    $level
      * @param string $message
      * @param string $file
-     * @param int    $code
      * @param int    $line
-     * @param array  $context
-     *
-     * @return bool
      */
-    public function catchError(string $message, string $file, int $code, int $line, array $context = []): void
+    public function catchError(int $level, string $message, string $file, int $line): void
     {
+        $exception = new ErrorException($message, $level, 0, $file, $line);
         $payload = [
-            'title'   => $message,
-            'context' => $context
+            'exception' => $exception
         ];
 
-        $exception = new ErrorException($message, $code, 0, $file, $line);
-        $payload['backtrace'] = Stacktrace::buildStack($exception);
-
-        $event = new Event(
-            $this->accessToken,
-            new EventPayload($payload)
-        );
+        $eventPayload = $this->eventPayloadFactory->create($payload);
+        $event = $this->prepareEvent($eventPayload);
 
         $this->send($event);
     }
 
     /**
-     * Fatal errors catch method
-     * Being called on script exit
-     *
-     * @return bool|null
+     * Catches fatal errors being called on script exit
      */
     public function catchFatal(): void
     {
         $error = error_get_last();
+        if ($error === null) {
+            return;
+        }
+
         $payload = [
-            'title' => $error['message']
+            'exception' => new ErrorException(
+                $error['message'],
+                0,
+                $error['type'],
+                $error['file'],
+                $error['line']
+            )
         ];
 
-        $exception = new ErrorException($error['message'], 0, $error['type'], $error['file'], $error['line']);
-        $payload['backtrace'] = Stacktrace::buildStack($exception);
+        $eventPayload = $this->eventPayloadFactory->create($payload);
+        $event = $this->prepareEvent($eventPayload);
 
-        $event = new Event(
-            $this->accessToken,
-            new EventPayload($payload)
-        );
         $this->send($event);
+    }
+
+    /**
+     * Enable Catcher handlers functions for Exceptions, Errors and Shutdowns
+     */
+    public function enableHandlers(): void
+    {
+        /**
+         * Catch uncaught exceptions
+         */
+        set_exception_handler([$this, 'catchException']);
+
+        /**
+         * Catch errors
+         * By default if $errors equals True then catch all errors
+         */
+        set_error_handler([$this, 'catchError'], $this->options->getErrorTypes());
+
+        /**
+         * Catch fatal errors
+         */
+        register_shutdown_function([$this, 'catchFatal']);
+    }
+
+    /**
+     * Prepares event and returns it
+     *
+     * @param EventPayload $eventPayload
+     *
+     * @return Event
+     */
+    private function prepareEvent(EventPayload $eventPayload): Event
+    {
+        $eventPayload->setRelease($this->options->getRelease());
+        $event = new Event(
+            $this->options->getAccessToken(),
+            $eventPayload
+        );
+
+        return $event;
     }
 
     /**

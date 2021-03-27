@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 namespace Hawk\Util;
 
+/**
+ * @deprecated
+ *
+ * Class Headers
+ *
+ * @package Hawk\Util
+ */
 class Headers
 {
     /**
