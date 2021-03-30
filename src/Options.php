@@ -18,7 +18,7 @@ final class Options
      */
     private $options = [
         'accessToken' => '',
-        'url'         => 'https://hawk.so/catcher/php',
+        'url'         => 'https://k1.hawk.so/',
         'release'     => '',
         'error_types' => \E_ALL
     ];
