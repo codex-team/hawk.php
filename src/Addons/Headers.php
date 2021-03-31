@@ -29,7 +29,7 @@ class Headers implements AddonInterface
     ];
 
     /**
-     * @return array
+     * @inheritDoc
      */
     public function resolve(): array
     {

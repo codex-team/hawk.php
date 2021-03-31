@@ -71,7 +71,7 @@ final class Catcher
      *      'message' => 'my special message'
      *  ])
      */
-    public function catchEvent(array $payload)
+    public function sendEvent(array $payload)
     {
         $this->handler->catchEvent($payload);
     }
@@ -86,7 +86,7 @@ final class Catcher
      *      'message' => 'my special message'
      *  ])
      */
-    public function catchException(Throwable $throwable, array $context = [])
+    public function sendException(Throwable $throwable, array $context = [])
     {
         $this->handler->catchException($throwable);
     }

@@ -12,7 +12,7 @@ namespace Hawk\Addons;
 class Runtime implements AddonInterface
 {
     /**
-     * @return array
+     * @inheritDoc
      */
     public function resolve(): array
     {

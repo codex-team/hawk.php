@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace Hawk\Addons;
 
+/**
+ * Class Os
+ *
+ * @package Hawk\Addons
+ */
 class Os implements AddonInterface
 {
     /**
-     * @return array
+     * @inheritDoc
      */
     public function resolve(): array
     {
