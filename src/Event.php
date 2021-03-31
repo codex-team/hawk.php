@@ -17,7 +17,7 @@ final class Event implements \JsonSerializable
     /**
      * @var string
      */
-    private $accessToken = '';
+    private $integrationToken = '';
 
     /**
      * Events payload corresponding to Hawk format
@@ -29,12 +29,12 @@ final class Event implements \JsonSerializable
     /**
      * Event constructor.
      *
-     * @param string       $accessToken
+     * @param string       $integrationToken
      * @param EventPayload $eventPayload
      */
-    public function __construct(string $accessToken, EventPayload $eventPayload)
+    public function __construct(string $integrationToken, EventPayload $eventPayload)
     {
-        $this->accessToken = $accessToken;
+        $this->integrationToken = $integrationToken;
         $this->eventPayload = $eventPayload;
     }
 
@@ -54,7 +54,7 @@ final class Event implements \JsonSerializable
     public function jsonSerialize()
     {
         return [
-            'token'        => $this->accessToken,
+            'token'        => $this->integrationToken,
             'catcherType'  => $this->catcherType,
             'payload'      => $this->getEventPayload()
         ];

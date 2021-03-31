@@ -17,10 +17,10 @@ final class Options
      * @var array
      */
     private $options = [
-        'accessToken' => '',
-        'url'         => 'https://k1.hawk.so/',
-        'release'     => '',
-        'error_types' => \E_ALL
+        'integrationToken' => '',
+        'url'              => 'https://k1.hawk.so/',
+        'release'          => '',
+        'error_types'      => \E_ALL
     ];
 
     /**
@@ -38,9 +38,9 @@ final class Options
      *
      * @return string
      */
-    public function getAccessToken(): string
+    public function getIntegrationToken(): string
     {
-        return $this->options['accessToken'];
+        return $this->options['integrationToken'];
     }
 
     /**

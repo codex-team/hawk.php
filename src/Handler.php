@@ -104,6 +104,7 @@ final class Handler
         $event = $this->prepareEvent($eventPayload);
 
         $this->send($event);
+        throw $exception;
     }
 
     /**
@@ -165,7 +166,7 @@ final class Handler
     {
         $eventPayload->setRelease($this->options->getRelease());
         $event = new Event(
-            $this->options->getAccessToken(),
+            $this->options->getIntegrationToken(),
             $eventPayload
         );
 

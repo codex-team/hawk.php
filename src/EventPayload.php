@@ -33,14 +33,7 @@ final class EventPayload implements \JsonSerializable
     private $description = '';
 
     /**
-     * Event occurrence timestamp
-     *
-     * @var int
-     */
-    private $timestamp = 0;
-
-    /**
-     * Events level
+     * Events severity level
      *
      * @var int
      */
@@ -96,6 +89,8 @@ final class EventPayload implements \JsonSerializable
     }
 
     /**
+     * Returns event title
+     *
      * @return string
      */
     public function getTitle(): string
@@ -116,6 +111,8 @@ final class EventPayload implements \JsonSerializable
     }
 
     /**
+     * Returns errors' type
+     *
      * @return int
      */
     public function getType(): int
@@ -136,6 +133,8 @@ final class EventPayload implements \JsonSerializable
     }
 
     /**
+     * Returns errors' description
+     *
      * @return string
      */
     public function getDescription(): string
@@ -156,26 +155,8 @@ final class EventPayload implements \JsonSerializable
     }
 
     /**
-     * @return int
-     */
-    public function getTimestamp(): int
-    {
-        return $this->timestamp;
-    }
-
-    /**
-     * @param int $timestamp
+     * Returns errors' severity level
      *
-     * @return $this
-     */
-    public function setTimestamp(int $timestamp): self
-    {
-        $this->timestamp = $timestamp;
-
-        return $this;
-    }
-
-    /**
      * @return int
      */
     public function getLevel(): int
@@ -195,11 +176,21 @@ final class EventPayload implements \JsonSerializable
         return $this;
     }
 
+    /**
+     * Returns errors' backtrace
+     *
+     * @return array
+     */
     public function getBacktrace(): array
     {
         return $this->backtrace;
     }
 
+    /**
+     * @param array $backtrace
+     *
+     * @return $this
+     */
     public function setBacktrace(array $backtrace): self
     {
         $this->backtrace = $backtrace;
@@ -208,6 +199,8 @@ final class EventPayload implements \JsonSerializable
     }
 
     /**
+     * Returns event addons
+     *
      * @return array
      */
     public function getAddons(): array
@@ -228,6 +221,8 @@ final class EventPayload implements \JsonSerializable
     }
 
     /**
+     * Returns release version
+     *
      * @return string
      */
     public function getRelease(): string
@@ -248,6 +243,8 @@ final class EventPayload implements \JsonSerializable
     }
 
     /**
+     * Returns user, if passed on event
+     *
      * @return array
      */
     public function getUser(): array
@@ -268,6 +265,8 @@ final class EventPayload implements \JsonSerializable
     }
 
     /**
+     * Returns event context (any additional data)
+     *
      * @return array
      */
     public function getContext(): array
@@ -304,7 +303,6 @@ final class EventPayload implements \JsonSerializable
             'title'       => $this->getTitle(),
             'type'        => $this->getType(),
             'description' => $this->getDescription(),
-            'timestamp'   => $this->getTimestamp(),
             'level'       => $this->getLevel(),
             'backtrace'   => $this->getBacktrace(),
             'addons'      => $this->getAddons(),

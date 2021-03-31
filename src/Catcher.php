@@ -10,7 +10,7 @@ use Throwable;
 /**
  * Hawk PHP Catcher SDK
  *
- * @copyright CodeX Team
+ * @copyright CodeX
  *
  * @see https://hawk.so/docs#add-server-handler
  */
