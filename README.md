@@ -2,7 +2,7 @@
 
 PHP errors Catcher for [Hawk.so](https://hawk.so).
 
-![](https://capella.pics/c0fe5eeb-027d-427a-9e0d-b2e1dcaaf303)
+![](https://capella.pics/image/4c6e5fee-da7e-4bc5-a898-f19d12acb005)
 
 ## Setup
 
@@ -21,6 +21,20 @@ $ composer require codex-team/hawk.php
     'integrationToken' => 'your integration token'
 ]);
 ```
+
+After initialization you can set `user` or `context` for any event that will be send to Hawk
+
+```php
+\Hawk\Catcher::get()
+    ->setUser([
+        'name' => 'user name',
+        'photo' => 'user photo',
+    ])
+    ->setContext([
+        ...
+    ]);
+```
+
 
 ### Send events and exceptions manually
 
