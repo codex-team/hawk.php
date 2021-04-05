@@ -83,6 +83,8 @@ final class Handler
         $event = $this->prepareEvent($eventPayload);
 
         $this->send($event);
+
+        throw $exception;
     }
 
     /**
@@ -92,8 +94,10 @@ final class Handler
      * @param string $message
      * @param string $file
      * @param int    $line
+     *
+     * @return bool
      */
-    public function catchError(int $level, string $message, string $file, int $line): void
+    public function catchError(int $level, string $message, string $file, int $line): bool
     {
         $exception = new ErrorException($message, $level, 0, $file, $line);
         $payload = [
@@ -104,7 +108,8 @@ final class Handler
         $event = $this->prepareEvent($eventPayload);
 
         $this->send($event);
-        throw $exception;
+
+        return false;
     }
 
     /**

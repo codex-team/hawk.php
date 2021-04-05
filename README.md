@@ -4,115 +4,48 @@ PHP errors Catcher for [Hawk.so](https://hawk.so).
 
 ![](https://capella.pics/c0fe5eeb-027d-427a-9e0d-b2e1dcaaf303)
 
-## Usage
+## Setup
 
-1. [Register](https://hawk.so/join) an account and get an Integration Token.
+1. [Register](https://hawk.so/join) an account and get Integration Token.
 
-2. Install module
-
-Use [composer](https://getcomposer.org) to install Catcher
+2. Install SDK via [composer](https://getcomposer.org) to install Catcher
 
 ```bash
 $ composer require codex-team/hawk.php
 ```
 
-3. Use as a [standalone catcher](#standalone-error-catcher) or use with [Monolog](#monolog-support).
-
-## Standalone error catcher
-
-Create an instance with Token at the entry point of your project.
+### Configuration
 
 ```php
-\Hawk\Catcher::instance('abcd1234-1234-abcd-1234-123456abcdef');
+\Hawk\Catcher::init([
+    'integrationToken' => 'your integration token'
+]);
 ```
 
-### Enable handlers
+### Send events and exceptions manually
 
-By default Hawk will catch everything. You can run function with no params.
-
-```php
-\Hawk\Catcher::enableHandlers();
-```
-
-It's similar to
-
-```php
-\Hawk\Catcher::enableHandlers(
-    true,       // exceptions
-    true,       // errors
-    true        // shutdown
-);
-```
-
-You can pass types of errors you want to track:
-
-```php
-// Catch run-time warnings or compile-time parse errors
-\Hawk\Catcher::enableHandlers(
-    true,                // exceptions
-    E_WARNING | E_PARSE, // errors
-    true                 // shutdown
-);
-```
-
-```php
-// Catch everything except notices
-\Hawk\Catcher::enableHandlers(
-    true,              // exceptions
-    E_ALL & ~E_NOTICE, // errors
-    true               // shutdown
-);
-```
-
-### Catch handled exceptions
-
-You can catch exceptions manually with `catchException` method.
+Use `sendException` method to send any caught exception
 
 ```php
 try {
     throw new Exception("Error Processing Request", 1);
 } catch (Exception $e) {
-    \Hawk\Catcher::catchException($e);
+    \Hawk\Catcher::get()->sendException($e);
 }
 ```
 
-## Monolog support
-
-Add a handler to the Monolog. It will catch errors/exception and ignore general logs.
+Use `sendEvent` method to send any data (logs, notices or something else)
 
 ```php
-$logger = new \Monolog\Logger('hawk-test');
-
-$HAWK_TOKEN = 'abcd1234-1234-abcd-1234-123456abcdef';
-$logger->pushHandler(new \Hawk\Monolog\Handler($HAWK_TOKEN, \Monolog\Logger::DEBUG));
-```
-
-Now you can use logger's functions to process handled exceptions. Pass it to context array in 'exception' field.
-
-```php
-try {
-   throw new Exception('Something went wrong');
-} catch (\Exception $e) {
-   $logger->error($e->getMessage(), ['exception' => $e]);
-}
-```
-
-### Default error catcher
-
-Register Monolog's handler as catcher.
-
-```php
-/** Set monolog as default error handler */
-$handler = \Monolog\ErrorHandler::register($logger);
-```
-
-It catches all errors and sends them to Hawk.
-
-Throwing unhandled error example (without try-catch construction):
-
-```php
-/** Fatal Error: "Just an error in a high quality code" */
-throw new Error('Just an error in a high quality code', E_USER_ERROR);
+\Hawk\Catcher::get()->sendEvent([
+    'title' => 'log title',
+    'user' => [
+        'name' => 'users name',
+    ],
+    'context' => [
+        ... // some extra information
+    ]
+]);
 ```
 
 ## Issues and improvements
