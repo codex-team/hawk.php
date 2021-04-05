@@ -105,8 +105,8 @@ final class Stacktrace
          * Add real error's path to trace chain
          */
         $stack[] = [
-            'file'  => $errorPosition['file'],
-            'line'  => $errorPosition['line'],
+            'file'       => $errorPosition['file'],
+            'line'       => $errorPosition['line'],
             'sourceCode' => self::getAdjacentLines($errorPosition['file'], $errorPosition['line'])
         ];
 
