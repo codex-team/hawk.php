@@ -1,74 +1,18 @@
 <?php
 
-namespace Hawk\Helper;
+declare(strict_types=1);
 
-class Stack
+namespace Hawk\Util;
+
+use Throwable;
+
+/**
+ * Class Stacktrace
+ *
+ * @package Hawk\Util
+ */
+final class Stacktrace
 {
-    /**
-     * Get path of file near target line to return as array
-     *
-     * @param string $filepath
-     * @param integer $line
-     * @param integer $margin max number of lines before and after target line
-     *                        to be returned
-     *
-     * @return array
-     */
-    public static function getAdjacentLines($filepath, $line, $margin = 5)
-    {
-        /**
-         * Get file as array of lines
-         */
-        $fileLines = file($filepath);
-
-        /**
-         * In the file lines are counted from 1 but in array first element
-         * is on 0 position. So to get line position in array
-         * we need to decrease real line by 1
-         */
-        $errorLineInArray = $line - 1;
-
-        /**
-         * Get upper and lower lines positions to return part of file
-         */
-        $firstLine = $errorLineInArray - $margin;
-        $lastLine = $errorLineInArray + $margin;
-
-        /**
-         * Create an empty array to be returned
-         */
-        $nearErrorFileLines = [];
-
-        /**
-         * Read file from $firstLine to $lastLine by lines
-         */
-        for ($line = $firstLine; $line <= $lastLine; $line++) {
-            /**
-             * Check if line doesn't exist. For elements positions in array before 0
-             * and after end of file will be returned NULL
-             */
-            if (!empty($fileLines[$line])) {
-                /**
-                 * Escape HTML chars
-                 */
-                $lineContent = htmlspecialchars($fileLines[$line]);
-
-                /**
-                 * Add new line
-                 */
-                $nearErrorFileLines[] = [
-                    /**
-                     * Save real line
-                     */
-                    'line' => $line + 1,
-                    'content' => $lineContent
-                ];
-            }
-        }
-
-        return $nearErrorFileLines;
-    }
-
     /**
      * Build exception backtrace.
      *
@@ -80,19 +24,12 @@ class Stack
      * we will throw it away too. We have enough information to add this last
      * call manually.
      *
-     * @param \Exception $exception
+     * @param Throwable $exception
      *
      * @return array
      */
-    public static function buildStack($exception)
+    public static function buildStack(Throwable $exception): array
     {
-        /**
-         * If exception was not passed then return full backtrace
-         */
-        if (!isset($exception)) {
-            return debug_backtrace();
-        }
-
         /**
          * Get trace to exception
          */
@@ -168,9 +105,9 @@ class Stack
          * Add real error's path to trace chain
          */
         $stack[] = [
-            'file' => $errorPosition['file'],
-            'line' => $errorPosition['line'],
-            'trace' => self::getAdjacentLines($errorPosition['file'], $errorPosition['line'])
+            'file'       => $errorPosition['file'],
+            'line'       => $errorPosition['line'],
+            'sourceCode' => self::getAdjacentLines($errorPosition['file'], $errorPosition['line'])
         ];
 
         /**
@@ -184,5 +121,70 @@ class Stack
         $stack = array_reverse($stack);
 
         return $stack;
+    }
+
+    /**
+     * Get path of file near target line to return as array
+     *
+     * @param string $filepath
+     * @param int    $line
+     * @param int    $margin   max number of lines before and after target line
+     *                         to be returned
+     *
+     * @return array
+     */
+    private static function getAdjacentLines(string $filepath, int $line, int $margin = 5): array
+    {
+        /**
+         * Get file as array of lines
+         */
+        $fileLines = file($filepath);
+
+        /**
+         * In the file lines are counted from 1 but in array first element
+         * is on 0 position. So to get line position in array
+         * we need to decrease real line by 1
+         */
+        $errorLineInArray = $line - 1;
+
+        /**
+         * Get upper and lower lines positions to return part of file
+         */
+        $firstLine = $errorLineInArray - $margin;
+        $lastLine = $errorLineInArray + $margin;
+
+        /**
+         * Create an empty array to be returned
+         */
+        $nearErrorFileLines = [];
+
+        /**
+         * Read file from $firstLine to $lastLine by lines
+         */
+        for ($line = $firstLine; $line <= $lastLine; $line++) {
+            /**
+             * Check if line doesn't exist. For elements positions in array before 0
+             * and after end of file will be returned NULL
+             */
+            if (!empty($fileLines[$line])) {
+                /**
+                 * Escape HTML chars
+                 */
+                $lineContent = htmlspecialchars($fileLines[$line]);
+
+                /**
+                 * Add new line
+                 */
+                $nearErrorFileLines[] = [
+                    /**
+                     * Save real line
+                     */
+                    'line'    => $line + 1,
+                    'content' => $lineContent
+                ];
+            }
+        }
+
+        return $nearErrorFileLines;
     }
 }
