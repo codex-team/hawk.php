@@ -31,6 +31,16 @@ final class Catcher
     private $handler;
 
     /**
+     * @var array
+     */
+    private $user = [];
+
+    /**
+     * @var array
+     */
+    private $context = [];
+
+    /**
      * Static method to initialize Catcher
      *
      * @param array $options
@@ -63,17 +73,39 @@ final class Catcher
     }
 
     /**
-     * @param array $payload
+     * @param array $user
      *
-     * @example
-     * \Hawk\Catcher::get()
-     *  ->catchEvent([
-     *      'message' => 'my special message'
-     *  ])
+     * @return $this
      */
-    public function sendEvent(array $payload)
+    public function setUser(array $user): self
     {
-        $this->handler->catchEvent($payload);
+        $this->user = $user;
+
+        return $this;
+    }
+
+    /**
+     * @param array $context
+     *
+     * @return $this
+     */
+    public function setContext(array $context): self
+    {
+        $this->context = $context;
+
+        return $this;
+    }
+
+    /**
+     * @param string $message
+     * @param array  $context
+     */
+    public function sendMessage(string $message, array $context = []): void
+    {
+        $this->handler->catchEvent([
+            'title'   => $message,
+            'context' => $context
+        ]);
     }
 
     /**
@@ -88,7 +120,7 @@ final class Catcher
      */
     public function sendException(Throwable $throwable, array $context = [])
     {
-        $this->handler->catchException($throwable);
+        $this->handler->catchException($throwable, $context);
     }
 
     /**
@@ -97,7 +129,7 @@ final class Catcher
     private function __construct(array $options)
     {
         $options = new Options($options);
-        $factory = new EventPayloadFactory();
+        $factory = new EventPayloadFactory($this->user, $this->context);
         $transport = new CurlTransport($options->getUrl());
 
         $this->handler = new Handler($options, $transport, $factory);

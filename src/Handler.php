@@ -74,12 +74,12 @@ final class Handler
      */
     public function catchException(Throwable $exception, array $context = []): void
     {
-        $payload = [
+        $data = [
             'exception' => $exception,
             'context'   => $context,
         ];
 
-        $eventPayload = $this->eventPayloadFactory->create($payload);
+        $eventPayload = $this->eventPayloadFactory->create($data);
         $event = $this->prepareEvent($eventPayload);
 
         $this->send($event);
@@ -100,11 +100,11 @@ final class Handler
     public function catchError(int $level, string $message, string $file, int $line): bool
     {
         $exception = new ErrorException($message, $level, 0, $file, $line);
-        $payload = [
+        $data = [
             'exception' => $exception
         ];
 
-        $eventPayload = $this->eventPayloadFactory->create($payload);
+        $eventPayload = $this->eventPayloadFactory->create($data);
         $event = $this->prepareEvent($eventPayload);
 
         $this->send($event);

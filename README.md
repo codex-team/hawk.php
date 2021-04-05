@@ -37,14 +37,8 @@ try {
 Use `sendEvent` method to send any data (logs, notices or something else)
 
 ```php
-\Hawk\Catcher::get()->sendEvent([
-    'title' => 'log title',
-    'user' => [
-        'name' => 'users name',
-    ],
-    'context' => [
-        ... // some extra information
-    ]
+\Hawk\Catcher::get()->sendMessage('your message', [
+    ... // Context
 ]);
 ```
 
