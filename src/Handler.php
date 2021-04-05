@@ -118,7 +118,10 @@ final class Handler
     public function catchFatal(): void
     {
         $error = error_get_last();
-        if ($error === null) {
+        if (
+            $error === null
+            || is_array($error) && $error['type'] && (\E_ERROR | \E_PARSE | \E_CORE_ERROR | \E_CORE_WARNING | \E_COMPILE_ERROR | \E_COMPILE_WARNING)
+        ) {
             return;
         }
 
