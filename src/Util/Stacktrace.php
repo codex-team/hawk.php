@@ -107,7 +107,7 @@ final class Stacktrace
         $stack[] = [
             'file'  => $errorPosition['file'],
             'line'  => $errorPosition['line'],
-            'trace' => self::getAdjacentLines($errorPosition['file'], $errorPosition['line'])
+            'sourceCode' => self::getAdjacentLines($errorPosition['file'], $errorPosition['line'])
         ];
 
         /**
