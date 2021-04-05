@@ -12,7 +12,7 @@ final class Event implements \JsonSerializable
     /**
      * @var string
      */
-    private $catcherType = 'error/php';
+    private $catcherType = 'errors/php';
 
     /**
      * @var string
