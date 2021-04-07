@@ -20,7 +20,8 @@ final class Options
         'integrationToken' => '',
         'url'              => 'https://k1.hawk.so/',
         'release'          => '',
-        'error_types'      => \E_ALL
+        'error_types'      => \E_ALL,
+        'beforeSend'       => null
     ];
 
     /**
@@ -71,5 +72,15 @@ final class Options
     public function getErrorTypes(): int
     {
         return $this->options['error_types'];
+    }
+
+    /**
+     * Returns before send callback
+     *
+     * @return callable|null
+     */
+    public function getBeforeSend(): ?callable
+    {
+        return $this->options['beforeSend'];
     }
 }
