@@ -27,6 +27,6 @@
     },
     "scripts": {
         "test": "vendor/bin/phpunit --testdox",
-        "csfix": "vendor/bin/php-cs-fixer fix --config=.php_cs --verbose"
+        "csfix": "vendor/bin/php-cs-fixer fix --config=.php_cs"
     }
 }
