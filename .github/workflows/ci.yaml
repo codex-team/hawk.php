@@ -10,5 +10,3 @@ jobs:
         uses: docker://oskarstark/php-cs-fixer-ga
         with:
           args: --config=.php_cs --using-cache=no --verbose --dry-run
-      - name: PHP_CodeSniffer
-        uses: chekalsky/phpcs-action@v1
