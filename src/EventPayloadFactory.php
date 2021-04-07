@@ -71,14 +71,14 @@ class EventPayloadFactory
 
         if (isset($data['exception']) && $data['exception'] instanceof \Throwable) {
             $exception = $data['exception'];
-            $backtrace = Stacktrace::buildStack($exception);
+            $stacktrace = Stacktrace::buildStack($exception);
 
             $eventPayload->setTitle($exception->getMessage());
         } else {
-            $backtrace = debug_backtrace();
+            $stacktrace = debug_backtrace();
         }
 
-        $eventPayload->setBacktrace($backtrace);
+        $eventPayload->setBacktrace($stacktrace);
 
         // Resolve addons
         $eventPayload->setAddons($this->resolveAddons());
