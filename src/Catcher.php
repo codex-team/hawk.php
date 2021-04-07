@@ -99,6 +99,12 @@ final class Catcher
     /**
      * @param string $message
      * @param array  $context
+     *
+     * @example
+     * \Hawk\Catcher::get()
+     *  ->sendMessage('my special message', [
+     *      ... // context
+     *  ])
      */
     public function sendMessage(string $message, array $context = []): void
     {
@@ -114,13 +120,27 @@ final class Catcher
      *
      * @example
      * \Hawk\Catcher::get()
-     *  ->catchException($exception, [
-     *      'message' => 'my special message'
+     *  ->sendException($exception, [
+     *      ... // context
      *  ])
      */
     public function sendException(Throwable $throwable, array $context = [])
     {
         $this->handler->catchException($throwable, $context);
+    }
+
+    /**
+     * @example
+     * \Hawk\Catcher::get()
+     *  ->sendEvent([
+     *      ... // payload
+     * ])
+     *
+     * @param array $payload
+     */
+    public function sendEvent(array $payload): void
+    {
+        $this->handler->catchEvent($payload);
     }
 
     /**

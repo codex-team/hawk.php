@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Hawk\Monolog;
 
 use Hawk\Catcher;
+use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\AbstractProcessingHandler;
 
 /**
@@ -21,17 +22,15 @@ class Handler extends AbstractProcessingHandler
     {
         $catcher = Catcher::get();
 
+        $data = [
+            'level' => $record['level'],
+            'title' => (new LineFormatter('%message%'))->format($record)
+        ];
+
         if (isset($record['context']['exception']) && $record['context']['exception'] instanceof \Throwable) {
-            $exception = $record['context']['exception'];
+            $data['exception'] = $record['context']['exception'];
         }
 
-        $context = [];
-        if (!empty($record['context'])) {
-            $context = $record['context'];
-        }
-
-        if ($exception !== null) {
-            $catcher->sendException($exception, $context);
-        }
+        $catcher->sendEvent($data);
     }
 }
