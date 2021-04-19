@@ -56,15 +56,21 @@ Use `sendEvent` method to send any data (logs, notices or something else)
 ]);
 ```
 
-### Filtering events data
+### Filtering sensitive information
 
-Add `beforeSend` callback to filter data before it is send to Hawk. Use setters to set any value or set empty to remove
+Use the `beforeSend` hook to filter any data you don't want to send to Hawk. Use setters to clear any property.
 
 ```php
 \Hawk\Catcher::init([
     // ...
     'beforeSend' => function (\Hawk\EventPayload $eventPayload) {
-        $eventPayload->setTitle('');
+        $user = $eventPayload->getUser();
+        
+        if (!empty($user['email'])){
+            unset($user['email']);
+        
+            $eventPayload->setUser($user);
+        }
 
         return $eventPayload;
     }
