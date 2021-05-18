@@ -16,7 +16,13 @@ require_once './vendor/autoload.php';
     'release'          => '12345',
     'url'              => 'http://localhost:3000/',
     'beforeSend'       => function (\Hawk\EventPayload $eventPayload) {
-        $eventPayload->setTitle('new title');
+        $user = $eventPayload->getUser();
+
+        if (!empty($user['email'])){
+            unset($user['email']);
+
+            $eventPayload->setUser($user);
+        }
 
         return $eventPayload;
     }
