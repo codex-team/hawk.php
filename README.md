@@ -56,6 +56,20 @@ Use `sendEvent` method to send any data (logs, notices or something else)
 ]);
 ```
 
+### Integration with Monolog
+
+Default handler usage provided by SDK
+
+```php
+use Hawk\Monolog\Handler;
+use Monolog\Logger;
+
+$monolog = new Logger('logger name');
+$monolog->pushHandler(new Handler());
+```
+
+Or your can create custom handler and send events manually
+
 ## Issues and improvements
 
 Feel free to ask questions or improve the project.
