@@ -63,7 +63,9 @@ final class Handler
         $eventPayload = $this->eventPayloadFactory->create($payload);
         $event = $this->prepareEvent($eventPayload);
 
-        $this->send($event);
+        if ($event !== null) {
+            $this->send($event);
+        }
     }
 
     /**
@@ -82,7 +84,9 @@ final class Handler
         $eventPayload = $this->eventPayloadFactory->create($data);
         $event = $this->prepareEvent($eventPayload);
 
-        $this->send($event);
+        if ($event !== null) {
+            $this->send($event);
+        }
 
         throw $exception;
     }
@@ -107,7 +111,9 @@ final class Handler
         $eventPayload = $this->eventPayloadFactory->create($data);
         $event = $this->prepareEvent($eventPayload);
 
-        $this->send($event);
+        if ($event !== null) {
+            $this->send($event);
+        }
 
         return false;
     }
@@ -138,7 +144,9 @@ final class Handler
         $eventPayload = $this->eventPayloadFactory->create($payload);
         $event = $this->prepareEvent($eventPayload);
 
-        $this->send($event);
+        if ($event !== null) {
+            $this->send($event);
+        }
     }
 
     /**
@@ -168,11 +176,18 @@ final class Handler
      *
      * @param EventPayload $eventPayload
      *
-     * @return Event
+     * @return null|Event
      */
-    private function prepareEvent(EventPayload $eventPayload): Event
+    private function prepareEvent(EventPayload $eventPayload): ?Event
     {
         $eventPayload->setRelease($this->options->getRelease());
+        $beforeSendCallback = $this->options->getBeforeSend();
+        if ($beforeSendCallback) {
+            $eventPayload = $beforeSendCallback($eventPayload);
+            if ($eventPayload === null) {
+                return null;
+            }
+        }
         $event = new Event(
             $this->options->getIntegrationToken(),
             $eventPayload

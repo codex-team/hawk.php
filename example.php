@@ -14,7 +14,18 @@ require_once './vendor/autoload.php';
 \Hawk\Catcher::init([
     'integrationToken' => 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI2MDY2ZWI5N2U3NTU2ZDAwMjM2M2UyNjYiLCJpYXQiOjE2MTczNTc3MTl9.OpelHPPvS_TB8wUqCHRzcO3-Cp1VNL0UzlFuMfR35tk',
     'release'          => '12345',
-    'url'              => 'http://localhost:3000/'
+    'url'              => 'http://localhost:3000/',
+    'beforeSend'       => function (\Hawk\EventPayload $eventPayload) {
+        $user = $eventPayload->getUser();
+
+        if (!empty($user['email'])) {
+            unset($user['email']);
+
+            $eventPayload->setUser($user);
+        }
+
+        return $eventPayload;
+    }
 ]);
 
 $a = 1 / 0;

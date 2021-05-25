@@ -56,19 +56,26 @@ Use `sendEvent` method to send any data (logs, notices or something else)
 ]);
 ```
 
-### Integration with Monolog
+### Filtering sensitive information
 
-Default handler usage provided by SDK
+Use the `beforeSend` hook to filter any data you don't want to send to Hawk. Use setters to clear any property.
 
 ```php
-use Hawk\Monolog\Handler;
-use Monolog\Logger;
+\Hawk\Catcher::init([
+    // ...
+    'beforeSend' => function (\Hawk\EventPayload $eventPayload) {
+        $user = $eventPayload->getUser();
+        
+        if (!empty($user['email'])){
+            unset($user['email']);
+        
+            $eventPayload->setUser($user);
+        }
 
-$monolog = new Logger('logger name');
-$monolog->pushHandler(new Handler());
+        return $eventPayload;
+    }
+]);
 ```
-
-Or your can create custom handler and send events manually
 
 ## Issues and improvements
 
