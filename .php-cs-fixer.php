@@ -7,7 +7,6 @@ return $config
     ->setRules([
         '@PSR2' => true,
         'array_syntax' => ['syntax' => 'short'],
-        'binary_operator_spaces' => ['align_double_arrow' => true],
         'blank_line_before_statement' => true,
         'cast_spaces' => true,
         'concat_space' => ['spacing' => 'one'],
