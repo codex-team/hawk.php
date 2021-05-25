@@ -25,26 +25,10 @@ class EventPayloadFactory
     private $addonsResolvers = [];
 
     /**
-     * @var array
-     */
-    private $user;
-
-    /**
-     * @var array
-     */
-    private $context;
-
-    /**
      * EventPayloadFactory constructor.
-     *
-     * @param array $user
-     * @param array $context
      */
-    public function __construct(array $user, array $context)
+    public function __construct()
     {
-        $this->user = $user;
-        $this->context = $context;
-
         $this->addonsResolvers['runtime'] = new Runtime();
         $this->addonsResolvers['server'] = new Os();
         $this->addonsResolvers['headers'] = new Headers();
@@ -61,13 +45,8 @@ class EventPayloadFactory
     {
         $eventPayload = new EventPayload();
 
-        if (isset($data['context'])) {
-            $eventPayload->setContext(array_merge($this->context, $data['context']));
-        } else {
-            $eventPayload->setContext($this->context);
-        }
-
-        $eventPayload->setUser($this->user);
+        $eventPayload->setContext($data['context']);
+        $eventPayload->setUser($data['user']);
 
         if (isset($data['exception']) && $data['exception'] instanceof \Throwable) {
             $exception = $data['exception'];
