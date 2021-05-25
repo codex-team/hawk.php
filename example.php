@@ -18,7 +18,7 @@ require_once './vendor/autoload.php';
     'beforeSend'       => function (\Hawk\EventPayload $eventPayload) {
         $user = $eventPayload->getUser();
 
-        if (!empty($user['email'])){
+        if (!empty($user['email'])) {
             unset($user['email']);
 
             $eventPayload->setUser($user);
