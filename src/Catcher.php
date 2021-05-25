@@ -79,7 +79,7 @@ final class Catcher
      */
     public function setUser(array $user): self
     {
-        $this->user = $user;
+        $this->handler->withUser($user);
 
         return $this;
     }
@@ -91,7 +91,7 @@ final class Catcher
      */
     public function setContext(array $context): self
     {
-        $this->context = $context;
+        $this->handler->withContext($context);
 
         return $this;
     }
@@ -149,7 +149,7 @@ final class Catcher
     private function __construct(array $options)
     {
         $options = new Options($options);
-        $factory = new EventPayloadFactory($this->user, $this->context);
+        $factory = new EventPayloadFactory();
         $transport = new CurlTransport($options->getUrl());
 
         $this->handler = new Handler($options, $transport, $factory);

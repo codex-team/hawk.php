@@ -37,6 +37,16 @@ final class Handler
     private $eventPayloadFactory;
 
     /**
+     * @var array
+     */
+    private $user = [];
+
+    /**
+     * @var array
+     */
+    private $context = [];
+
+    /**
      * Handler constructor.
      *
      * @param Options             $options
@@ -54,12 +64,39 @@ final class Handler
     }
 
     /**
+     * @param array $user
+     *
+     * @return $this
+     */
+    public function withUser(array $user): self
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+
+    /**
+     * @param array $context
+     *
+     * @return $this
+     */
+    public function withContext(array $context): self
+    {
+        $this->context = $context;
+
+        return $this;
+    }
+
+    /**
      * Method to send manually any event to Hawk
      *
      * @param array $payload
      */
     public function catchEvent(array $payload): void
     {
+        $payload['context'] = array_merge($this->context, $payload['context']);
+        $payload['user'] = $this->user;
+
         $eventPayload = $this->eventPayloadFactory->create($payload);
         $event = $this->prepareEvent($eventPayload);
 
@@ -76,7 +113,8 @@ final class Handler
     {
         $data = [
             'exception' => $exception,
-            'context'   => $context,
+            'context'   => array_merge($this->context, $context),
+            'user'      => $this->user
         ];
 
         $eventPayload = $this->eventPayloadFactory->create($data);
@@ -101,7 +139,9 @@ final class Handler
     {
         $exception = new ErrorException($message, $level, 0, $file, $line);
         $data = [
-            'exception' => $exception
+            'exception' => $exception,
+            'context'   => $this->context,
+            'user'      => $this->user
         ];
 
         $eventPayload = $this->eventPayloadFactory->create($data);
@@ -132,7 +172,9 @@ final class Handler
                 $error['type'],
                 $error['file'],
                 $error['line']
-            )
+            ),
+            'context'   => $this->context,
+            'user'      => $this->user
         ];
 
         $eventPayload = $this->eventPayloadFactory->create($payload);
