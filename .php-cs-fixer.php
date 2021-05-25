@@ -1,5 +1,8 @@
 <?php
-return PhpCsFixer\Config::create()
+
+$config = new \PhpCsFixer\Config();
+
+return $config
     ->setUsingCache(false)
     ->setRules([
         '@PSR2' => true,
