@@ -47,7 +47,7 @@ class EventPayloadFactory
 
         $this->addonsResolvers['runtime'] = new Runtime();
         $this->addonsResolvers['server'] = new Os();
-        $this->addonsResolvers['header'] = new Headers();
+        $this->addonsResolvers['headers'] = new Headers();
     }
 
     /**
