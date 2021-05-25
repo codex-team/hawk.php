@@ -74,6 +74,7 @@ final class Stacktrace
                  * Remove this call
                  */
                 unset($stack[$index]);
+
                 continue;
             }
 
@@ -92,6 +93,7 @@ final class Stacktrace
                  * We will add it here manually later
                  */
                 unset($stack[$index]);
+
                 continue;
             }
 
