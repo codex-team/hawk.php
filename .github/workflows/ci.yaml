@@ -6,7 +6,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: PHP CS Fixer
-        uses: docker://oskarstark/php-cs-fixer-ga
+
+      - name: Setup PHP with tools
+        uses: shivammathur/setup-php@v2
         with:
-          args: --config=.php_cs --using-cache=no --verbose --dry-run
+          php-version: '7.3'
+          tools: php-cs-fixer
+
+      - name: PHP CS Fixer
+        run: php-cs-fixer fix --config=.php-cs-fixer.php --using-cache=no --verbose --dry-run
