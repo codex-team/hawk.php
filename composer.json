@@ -28,6 +28,6 @@
     },
     "scripts": {
         "test": "vendor/bin/phpunit --testdox",
-        "csfix": "vendor/bin/php-cs-fixer fix --config=.php_cs"
+        "csfix": "vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php --using-cache=no --verbose"
     }
 }

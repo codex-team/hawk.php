@@ -175,6 +175,11 @@ final class Stacktrace
                 $lineContent = htmlspecialchars($fileLines[$line]);
 
                 /**
+                 * Remove line breaks
+                 */
+                $lineContent = preg_replace("/\r|\n/", '', $lineContent);
+
+                /**
                  * Add new line
                  */
                 $nearErrorFileLines[] = [
