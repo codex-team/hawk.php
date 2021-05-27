@@ -177,7 +177,7 @@ final class Stacktrace
                 /**
                  * Remove line breaks
                  */
-                $lineContent = preg_replace( "/\r|\n/", "", $lineContent);
+                $lineContent = preg_replace("/\r|\n/", '', $lineContent);
 
                 /**
                  * Add new line
