@@ -36,17 +36,31 @@ final class Stacktrace
         $stack = $exception->getTrace();
 
         /**
+         * Prepare new stack to be filled
+         */
+        $newStack = [];
+
+        /**
          * Get real exception position
          */
         $errorPosition = [
             'file' => $exception->getFile(),
-            'line' => $exception->getLine()
+            'line' => $exception->getLine(),
         ];
 
         /**
-         * Reverse stack to go through from first call in project's entry point
+         * Frames iterator
          */
-        $stack = array_reverse($stack);
+        $i = 0;
+
+        /**
+         * Add real error's path to trace chain
+         */
+        $newStack[$i] = [
+            'file'       => $errorPosition['file'],
+            'line'       => $errorPosition['line'],
+            'sourceCode' => self::getAdjacentLines($errorPosition['file'], $errorPosition['line']),
+        ];
 
         /**
          * This flag tells us that we have already found string with error
@@ -74,7 +88,6 @@ final class Stacktrace
                  * Remove this call
                  */
                 unset($stack[$index]);
-
                 continue;
             }
 
@@ -93,36 +106,87 @@ final class Stacktrace
                  * We will add it here manually later
                  */
                 unset($stack[$index]);
-
                 continue;
             }
 
             /**
-             * Save a couple of lines in the file by number of target line
+             * Compose new frame
              */
-            $stack[$index]['trace'] = self::getAdjacentLines($callee['file'], $callee['line']);
+            $newStack[++$i] = [
+                'file'       => $stack[$index]['file'],
+                'line'       => $stack[$index]['line'],
+                'sourceCode' => self::getAdjacentLines($stack[$index]['file'], $stack[$index]['line']),
+            ];
+
+            /**
+             * Fill function and arguments data for the previous frame
+             */
+            $newStack[$i - 1]['function'] = $stack[$index]['function'];
+            $newStack[$i - 1]['arguments'] = self::getArgs($stack[$index]);
+        }
+
+        return $newStack;
+    }
+
+    /**
+     * Get function arguments for a frame
+     *
+     * @param $backtraceFrame
+     *
+     * @return array
+     */
+    private static function getArgs($backtraceFrame) {
+        $backtraceFrameArgs = $backtraceFrame['args'];
+
+        $reflectionFunction = null;
+
+        try {
+            if (isset($backtraceFrame['class'], $backtraceFrame['function'])) {
+                if (method_exists($backtraceFrame['class'], $backtraceFrame['function'])) {
+                    $reflectionFunction = new \ReflectionMethod($backtraceFrame['class'], $backtraceFrame['function']);
+                } elseif (isset($backtraceFrame['type']) && '::' === $backtraceFrame['type']) {
+                    $reflectionFunction = new \ReflectionMethod($backtraceFrame['class'], '__callStatic');
+                } else {
+                    $reflectionFunction = new \ReflectionMethod($backtraceFrame['class'], '__call');
+                }
+            } elseif (isset($backtraceFrame['function']) && !\in_array($backtraceFrame['function'], ['{closure}', '__lambda_func'], true) && \function_exists($backtraceFrame['function'])) {
+                $reflectionFunction = new \ReflectionFunction($backtraceFrame['function']);
+            }
+        } catch (\ReflectionException $e) {
+            // Reflection failed, we do nothing instead
+        }
+
+        $argumentValues = [];
+
+        if (null !== $reflectionFunction) {
+            foreach ($reflectionFunction->getParameters() as $reflectionParameter) {
+                $parameterPosition = $reflectionParameter->getPosition();
+
+                if (!isset($backtraceFrameArgs[$parameterPosition])) {
+                    continue;
+                }
+
+                $argumentValues[$reflectionParameter->getName()] = $backtraceFrameArgs[$parameterPosition];
+            }
+        } else {
+            foreach ($backtraceFrame['args'] as $parameterPosition => $parameterValue) {
+                $argumentValues['param' . $parameterPosition] = $parameterValue;
+            }
         }
 
         /**
-         * Add real error's path to trace chain
+         * Uncomment and remove the following code when hawk.types
+         * supports non-iterable list of arguments
          */
-        $stack[] = [
-            'file'       => $errorPosition['file'],
-            'line'       => $errorPosition['line'],
-            'sourceCode' => self::getAdjacentLines($errorPosition['file'], $errorPosition['line'])
-        ];
+        //$stack[$index]['arguments'] = $argumentValues;
+        $newArgumentsValues = [];
+        foreach ($argumentValues as $name => $value) {
+            $newArgumentsValues[] = $name . ' = ' . $value;
+        }
+        $argumentValues = $newArgumentsValues;
 
-        /**
-         * Normalize array's indexes
-         */
-        $stack = array_values($stack);
 
-        /**
-         * Reverse stack back to have the latest call at the start of array
-         */
-        $stack = array_reverse($stack);
-
-        return $stack;
+        return $argumentValues;
     }
 
     /**
