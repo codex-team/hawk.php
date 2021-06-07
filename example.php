@@ -16,16 +16,19 @@ require_once './vendor/autoload.php';
     'url'              => 'http://localhost:3000/'
 ]);
 
-function randStr() {
+function randStr()
+{
     return bin2hex(openssl_random_pseudo_bytes(8));
 }
 
 
-function test($aTest) {
+function test($aTest)
+{
     return divZero($aTest);
 }
 
-function divZero($aDiv) {
+function divZero($aDiv)
+{
     $b = 0;
 
     $randA =  randStr();
@@ -35,7 +38,8 @@ function divZero($aDiv) {
     return $aDiv / $b;
 }
 
-function fail($numFail){
+function fail($numFail)
+{
     throw new Exception('Error ' . $numFail . ' at ' . date('j F Y h:i:s'));
 }
 

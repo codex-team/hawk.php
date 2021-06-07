@@ -88,6 +88,7 @@ final class Stacktrace
                  * Remove this call
                  */
                 unset($stack[$index]);
+
                 continue;
             }
 
@@ -106,6 +107,7 @@ final class Stacktrace
                  * We will add it here manually later
                  */
                 unset($stack[$index]);
+
                 continue;
             }
 
@@ -135,7 +137,8 @@ final class Stacktrace
      *
      * @return array
      */
-    private static function getArgs($backtraceFrame) {
+    private static function getArgs($backtraceFrame)
+    {
         $backtraceFrameArgs = $backtraceFrame['args'];
 
         /**
