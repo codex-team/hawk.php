@@ -138,8 +138,15 @@ final class Stacktrace
     private static function getArgs($backtraceFrame) {
         $backtraceFrameArgs = $backtraceFrame['args'];
 
+        /**
+         * According to docs: the ReflectionFunction/ReflectionMethod class
+         * reports information about a function/method.
+         */
         $reflectionFunction = null;
 
+        /**
+         * Trying to create a correct ReflectionMethod
+         */
         try {
             if (isset($backtraceFrame['class'], $backtraceFrame['function'])) {
                 if (method_exists($backtraceFrame['class'], $backtraceFrame['function'])) {
@@ -156,8 +163,15 @@ final class Stacktrace
             // Reflection failed, we do nothing instead
         }
 
+        /**
+         * Defining an array of arguments
+         */
         $argumentValues = [];
 
+        /**
+         * If reflectionFunction exists then trying to fill arguments array
+         * otherwise saving params as arg0, arg1, ...
+         */
         if (null !== $reflectionFunction) {
             foreach ($reflectionFunction->getParameters() as $reflectionParameter) {
                 $parameterPosition = $reflectionParameter->getPosition();
@@ -170,15 +184,14 @@ final class Stacktrace
             }
         } else {
             foreach ($backtraceFrame['args'] as $parameterPosition => $parameterValue) {
-                $argumentValues['param' . $parameterPosition] = $parameterValue;
+                $argumentValues['arg' . $parameterPosition] = $parameterValue;
             }
         }
 
         /**
-         * Uncomment and remove the following code when hawk.types
-         * supports non-iterable list of arguments
+         * @todo Remove the following code when hawk.types
+         *       supports non-iterable list of arguments
          */
-        //$stack[$index]['arguments'] = $argumentValues;
         $newArgumentsValues = [];
         foreach ($argumentValues as $name => $value) {
             $newArgumentsValues[] = $name . ' = ' . $value;
