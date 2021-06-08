@@ -145,22 +145,27 @@ final class Stacktrace
          * According to docs: the ReflectionFunction/ReflectionMethod class
          * reports information about a function/method.
          */
-        $reflectionFunction = null;
+        $reflection = null;
 
         /**
          * Trying to create a correct ReflectionMethod
          */
         try {
             if (isset($backtraceFrame['class'], $backtraceFrame['function'])) {
-                if (method_exists($backtraceFrame['class'], $backtraceFrame['function'])) {
-                    $reflectionFunction = new \ReflectionMethod($backtraceFrame['class'], $backtraceFrame['function']);
-                } elseif (isset($backtraceFrame['type']) && '::' === $backtraceFrame['type']) {
-                    $reflectionFunction = new \ReflectionMethod($backtraceFrame['class'], '__callStatic');
+                $reflectionArgs = [
+                    'class'     => $backtraceFrame['class'],
+                    'function'  => $backtraceFrame['function'],
+                ];
+
+                if (isset($backtraceFrame['type']) && '::' === $backtraceFrame['type']) {
+                    $reflectionArgs['function'] = '__callStatic';
                 } else {
-                    $reflectionFunction = new \ReflectionMethod($backtraceFrame['class'], '__call');
+                    $reflectionArgs['function'] = '__call';
                 }
+
+                $reflection = new \ReflectionMethod($reflectionArgs['class'], $reflectionArgs['function']);
             } elseif (isset($backtraceFrame['function']) && !\in_array($backtraceFrame['function'], ['{closure}', '__lambda_func'], true) && \function_exists($backtraceFrame['function'])) {
-                $reflectionFunction = new \ReflectionFunction($backtraceFrame['function']);
+                $reflection = new \ReflectionFunction($backtraceFrame['function']);
             }
         } catch (\ReflectionException $e) {
             // Reflection failed, we do nothing instead
@@ -175,8 +180,8 @@ final class Stacktrace
          * If reflectionFunction exists then trying to fill arguments array
          * otherwise saving params as arg0, arg1, ...
          */
-        if (null !== $reflectionFunction) {
-            foreach ($reflectionFunction->getParameters() as $reflectionParameter) {
+        if (null !== $reflection) {
+            foreach ($reflection->getParameters() as $reflectionParameter) {
                 $parameterPosition = $reflectionParameter->getPosition();
 
                 if (!isset($backtraceFrameArgs[$parameterPosition])) {

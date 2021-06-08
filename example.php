@@ -12,8 +12,8 @@
 require_once './vendor/autoload.php';
 
 \Hawk\Catcher::init([
-    'integrationToken' => 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI2MGJhODIyNzM1M2MyNzAwMjMxMWE1MzEiLCJpYXQiOjE2MjI4MzU3NTF9.uoKJEwd62N7SfWCTQfSrFuor8xgKCq2WPCPeMDPBHVU',
-    'url'              => 'http://localhost:3000/'
+    'integrationToken' => 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI2MGJmNzFjMmZmODQ5MWFmNWIwZWZiYWUiLCJpYXQiOjE2MjMxNTkyMzR9.dwFU0VTdKsnDDMTKmGUXkxCs0sH6jsj55uPpqCbXBHA',
+//    'url'              => 'http://localhost:3000/'
 ]);
 
 function randStr()
