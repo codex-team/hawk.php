@@ -21,11 +21,24 @@ function randStr()
     return bin2hex(openssl_random_pseudo_bytes(8));
 }
 
-
-function test($aTest)
+class Test
 {
-    return divZero($aTest);
+    public function __construct()
+    {
+    }
+
+    public function test($aTest)
+    {
+        return self::testStatic($aTest);
+    }
+
+    public static function testStatic($aTest)
+    {
+        return divZero($aTest);
+    }
 }
+
+$t = new Test();
 
 function divZero($aDiv)
 {
@@ -44,4 +57,4 @@ function fail($numFail)
 }
 
 
-test(15);
+$t->test(5);

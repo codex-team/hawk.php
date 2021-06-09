@@ -111,88 +111,102 @@ final class Stacktrace
                 continue;
             }
 
+            $frame = $stack[$index];
+
             /**
              * Compose new frame
              */
             $newStack[++$i] = [
-                'file'       => $stack[$index]['file'],
-                'line'       => $stack[$index]['line'],
-                'sourceCode' => self::getAdjacentLines($stack[$index]['file'], $stack[$index]['line']),
+                'file'       => $frame['file'],
+                'line'       => $frame['line'],
+                'sourceCode' => self::getAdjacentLines($frame['file'], $frame['line']),
             ];
 
             /**
              * Fill function and arguments data for the previous frame
              */
-            $newStack[$i - 1]['function'] = $stack[$index]['function'];
-            $newStack[$i - 1]['arguments'] = self::getArgs($stack[$index]);
+            $newStack[$i - 1]['function'] = self::composeFunctionName($frame);
+            $newStack[$i - 1]['arguments'] = self::getArgs($frame);
         }
 
         return $newStack;
     }
 
     /**
-     * Get function arguments for a frame
+     * Compose function name with a class
      *
-     * @param $backtraceFrame
+     * @param $frame
      *
-     * @return array
+     * @return string
      */
-    private static function getArgs($backtraceFrame)
+    private static function composeFunctionName($frame)
     {
-        $backtraceFrameArgs = $backtraceFrame['args'];
-
         /**
-         * According to docs: the ReflectionFunction/ReflectionMethod class
-         * reports information about a function/method.
+         * Set an empty function name to be returned
          */
-        $reflection = null;
+        $functionName = '';
 
         /**
-         * Trying to create a correct ReflectionMethod
+         * Try to fill name with a class name and type '::' or '->'
          */
         try {
-            if (isset($backtraceFrame['class'], $backtraceFrame['function'])) {
-                $reflectionArgs = [
-                    'class'     => $backtraceFrame['class'],
-                    'function'  => $backtraceFrame['function'],
-                ];
-
-                if (isset($backtraceFrame['type']) && '::' === $backtraceFrame['type']) {
-                    $reflectionArgs['function'] = '__callStatic';
-                } else {
-                    $reflectionArgs['function'] = '__call';
-                }
-
-                $reflection = new \ReflectionMethod($reflectionArgs['class'], $reflectionArgs['function']);
-            } elseif (isset($backtraceFrame['function']) && !\in_array($backtraceFrame['function'], ['{closure}', '__lambda_func'], true) && \function_exists($backtraceFrame['function'])) {
-                $reflection = new \ReflectionFunction($backtraceFrame['function']);
+            if (isset($frame['class'])) {
+                $functionName = $frame['class'] . $frame['type'];
             }
-        } catch (\ReflectionException $e) {
-            // Reflection failed, we do nothing instead
+        } catch (\Exception $e) {
         }
 
         /**
-         * Defining an array of arguments
+         * Add a real function name
          */
-        $argumentValues = [];
+        $functionName .= $frame['function'];
+
+        return $functionName;
+    }
+
+    /**
+     * Get function arguments for a frame
+     *
+     * @param $frame
+     *
+     * @return array
+     */
+    private static function getArgs($frame)
+    {
+        /**
+         * Defining an array of arguments to be returned
+         */
+        $arguments = [];
 
         /**
-         * If reflectionFunction exists then trying to fill arguments array
-         * otherwise saving params as arg0, arg1, ...
+         * ReflectionFunction/ReflectionMethod class reports information
+         * about a function/method.
          */
-        if (null !== $reflection) {
-            foreach ($reflection->getParameters() as $reflectionParameter) {
-                $parameterPosition = $reflectionParameter->getPosition();
+        $reflection = self::getReflectionMethod($frame);
 
-                if (!isset($backtraceFrameArgs[$parameterPosition])) {
-                    continue;
-                }
-
-                $argumentValues[$reflectionParameter->getName()] = $backtraceFrameArgs[$parameterPosition];
+        /**
+         * If reflection function in missing then create a simple list of arguments
+         */
+        if (!$reflection) {
+            foreach ($frame['args'] as $index => $value) {
+                $arguments['arg' . $index] = $value;
             }
         } else {
-            foreach ($backtraceFrame['args'] as $parameterPosition => $parameterValue) {
-                $argumentValues['arg' . $parameterPosition] = $parameterValue;
+            /**
+             * Get reflection params
+             */
+            $reflectionParams = $reflection->getParameters();
+
+            /**
+             * Passing through reflection params to get real names for values
+             */
+            foreach ($reflectionParams as $reflectionParam) {
+                $paramName = $reflectionParam->getName();
+                $paramPosition = $reflectionParam->getPosition();
+
+                if ($frame['args'][$paramPosition]) {
+                    $arguments[$paramName] = $frame['args'][$paramPosition];
+                }
             }
         }
 
@@ -200,14 +214,49 @@ final class Stacktrace
          * @todo Remove the following code when hawk.types
          *       supports non-iterable list of arguments
          */
-        $newArgumentsValues = [];
-        foreach ($argumentValues as $name => $value) {
-            $newArgumentsValues[] = $name . ' = ' . $value;
+        $newArguments = [];
+        foreach ($arguments as $name => $value) {
+            $newArguments[] = $name . ' = ' . $value;
         }
-        $argumentValues = $newArgumentsValues;
+        $arguments = $newArguments;
 
+        return $arguments;
+    }
 
-        return $argumentValues;
+    /**
+     * Trying to create a reflection method
+     *
+     * @param $frame - backtrace frame
+     *
+     * @return \ReflectionFunction|\ReflectionMethod|null
+     */
+    private static function getReflectionMethod($frame)
+    {
+        /**
+         * Trying to create a correct reflection
+         */
+        try {
+            /**
+             * If we know class and method
+             */
+            if (isset($frame['class']) && isset($frame['function'])) {
+                return new \ReflectionMethod($frame['class'], $frame['function']);
+            }
+
+            /**
+             * If class name is missing then create a non-class function
+             */
+            if (!isset($frame['class'])) {
+                return new \ReflectionFunction($frame['function']);
+            }
+        } catch (\ReflectionException $e) {
+            // Cannot create a reflection
+        }
+
+        /**
+         * Return null if we cannot create a reflection
+         */
+        return null;
     }
 
     /**
@@ -254,10 +303,7 @@ final class Stacktrace
              * and after end of file will be returned NULL
              */
             if (!empty($fileLines[$line])) {
-                /**
-                 * Escape HTML chars
-                 */
-                $lineContent = htmlspecialchars($fileLines[$line]);
+                $lineContent = $fileLines[$line];
 
                 /**
                  * Remove line breaks
