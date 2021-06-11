@@ -35,18 +35,12 @@ final class Stacktrace
          */
         $stack = $exception->getTrace();
 
+        var_dump($stack);
+
         /**
          * Prepare new stack to be filled
          */
         $newStack = [];
-
-        /**
-         * Get real exception position
-         */
-        $errorPosition = [
-            'file' => $exception->getFile(),
-            'line' => $exception->getLine(),
-        ];
 
         /**
          * Frames iterator
@@ -55,11 +49,15 @@ final class Stacktrace
 
         /**
          * Add real error's path to trace chain
+         *
+         * Stack does not contain the latest (real) event frame
+         * so we use getFile() and getLine() exception's methods
+         * to get data for sources.
          */
         $newStack[$i] = [
-            'file'       => $errorPosition['file'],
-            'line'       => $errorPosition['line'],
-            'sourceCode' => self::getAdjacentLines($errorPosition['file'], $errorPosition['line']),
+            'file'       => $exception->getFile(),
+            'line'       => $exception->getLine(),
+            'sourceCode' => self::getAdjacentLines($exception->getFile(), $exception->getLine()),
         ];
 
         /**
@@ -95,7 +93,7 @@ final class Stacktrace
             /**
              * Is it our error? Check for a file and line similarity
              */
-            if ($errorPosition['file'] == $callee['file'] && $errorPosition['line'] == $callee['line']) {
+            if ($exception->getFile() == $callee['file'] && $exception->getLine() == $callee['line']) {
                 /**
                  * We have found error in stack
                  * Then we can ignore all other calls
@@ -124,6 +122,16 @@ final class Stacktrace
 
             /**
              * Fill function and arguments data for the previous frame
+             *
+             * Each stack's frame contains data about the called method
+             * and it's arguments but this data is useful only for
+             * the previous frame because we get source code line
+             * for that method.
+             *
+             * For the oldest frame (the last frame in the stack) we have
+             * no method (and arguments) because it is an entry point
+             * for the script. Then these fields for the last stack
+             * frame $i will be empty.
              */
             $newStack[$i - 1]['function'] = self::composeFunctionName($frame);
             $newStack[$i - 1]['arguments'] = self::getArgs($frame);
@@ -133,13 +141,13 @@ final class Stacktrace
     }
 
     /**
-     * Compose function name with a class
+     * Compose function name with a class for frame
      *
-     * @param $frame
+     * @param array $frame - backtrace frame
      *
      * @return string
      */
-    private static function composeFunctionName($frame)
+    private static function composeFunctionName($frame): string
     {
         /**
          * Set an empty function name to be returned
@@ -147,13 +155,10 @@ final class Stacktrace
         $functionName = '';
 
         /**
-         * Try to fill name with a class name and type '::' or '->'
+         * Fill name with a class name and type '::' or '->'
          */
-        try {
-            if (isset($frame['class'])) {
-                $functionName = $frame['class'] . $frame['type'];
-            }
-        } catch (\Exception $e) {
+        if (!empty($frame['class'])) {
+            $functionName = $frame['class'] . $frame['type'];
         }
 
         /**
@@ -167,16 +172,24 @@ final class Stacktrace
     /**
      * Get function arguments for a frame
      *
-     * @param $frame
+     * @param array $frame - backtrace frame
      *
      * @return array
      */
-    private static function getArgs($frame)
+    private static function getArgs($frame): array
     {
         /**
          * Defining an array of arguments to be returned
          */
         $arguments = [];
+
+        /**
+         * If args param is not exist or empty
+         * then return empty args array
+         */
+        if (empty($frame['args'])) {
+            return $arguments;
+        }
 
         /**
          * ReflectionFunction/ReflectionMethod class reports information
@@ -226,7 +239,7 @@ final class Stacktrace
     /**
      * Trying to create a reflection method
      *
-     * @param $frame - backtrace frame
+     * @param array $frame - backtrace frame
      *
      * @return \ReflectionFunction|\ReflectionMethod|null
      */
@@ -239,14 +252,14 @@ final class Stacktrace
             /**
              * If we know class and method
              */
-            if (isset($frame['class']) && isset($frame['function'])) {
+            if (!empty($frame['class']) && !empty($frame['function'])) {
                 return new \ReflectionMethod($frame['class'], $frame['function']);
             }
 
             /**
              * If class name is missing then create a non-class function
              */
-            if (!isset($frame['class'])) {
+            if (empty($frame['class'])) {
                 return new \ReflectionFunction($frame['function']);
             }
         } catch (\ReflectionException $e) {
@@ -262,8 +275,8 @@ final class Stacktrace
     /**
      * Get path of file near target line to return as array
      *
-     * @param string $filepath
-     * @param int    $line
+     * @param string $filepath path to source file
+     * @param int    $line     number of the target line
      * @param int    $margin   max number of lines before and after target line
      *                         to be returned
      *
