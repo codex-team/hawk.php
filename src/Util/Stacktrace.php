@@ -147,7 +147,7 @@ final class Stacktrace
      *
      * @return string
      */
-    private static function composeFunctionName($frame): string
+    private static function composeFunctionName(array $frame): string
     {
         /**
          * Set an empty function name to be returned
