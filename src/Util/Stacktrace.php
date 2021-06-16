@@ -176,7 +176,7 @@ final class Stacktrace
      *
      * @return array
      */
-    private static function getArgs($frame): array
+    private static function getArgs(array $frame): array
     {
         /**
          * Defining an array of arguments to be returned
