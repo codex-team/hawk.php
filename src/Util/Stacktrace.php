@@ -35,8 +35,6 @@ final class Stacktrace
          */
         $stack = $exception->getTrace();
 
-        var_dump($stack);
-
         /**
          * Prepare new stack to be filled
          */
