@@ -243,7 +243,7 @@ final class Stacktrace
      *
      * @return \ReflectionFunction|\ReflectionMethod|null
      */
-    private static function getReflectionMethod($frame)
+    private static function getReflectionMethod(array $frame): ?ReflectionFunctionAbstract
     {
         /**
          * Trying to create a correct reflection
