@@ -12,20 +12,49 @@
 require_once './vendor/autoload.php';
 
 \Hawk\Catcher::init([
-    'integrationToken' => 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI2MDY2ZWI5N2U3NTU2ZDAwMjM2M2UyNjYiLCJpYXQiOjE2MTczNTc3MTl9.OpelHPPvS_TB8wUqCHRzcO3-Cp1VNL0UzlFuMfR35tk',
-    'release'          => '12345',
-    'url'              => 'http://localhost:3000/',
-    'beforeSend'       => function (\Hawk\EventPayload $eventPayload) {
-        $user = $eventPayload->getUser();
-
-        if (!empty($user['email'])) {
-            unset($user['email']);
-
-            $eventPayload->setUser($user);
-        }
-
-        return $eventPayload;
-    }
+    'integrationToken' => 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI2MGJmNzFjMmZmODQ5MWFmNWIwZWZiYWUiLCJpYXQiOjE2MjMxNTkyMzR9.dwFU0VTdKsnDDMTKmGUXkxCs0sH6jsj55uPpqCbXBHA',
+//    'url'              => 'http://localhost:3000/'
 ]);
 
-$a = 1 / 0;
+function randStr()
+{
+    return bin2hex(openssl_random_pseudo_bytes(8));
+}
+
+class Test
+{
+    public function __construct()
+    {
+    }
+
+    public function test($aTest)
+    {
+        return self::testStatic($aTest);
+    }
+
+    public static function testStatic($aTest)
+    {
+        return divZero($aTest);
+    }
+}
+
+$t = new Test();
+
+function divZero($aDiv)
+{
+    $b = 0;
+
+    $randA =  randStr();
+
+    fail($randA);
+
+    return $aDiv / $b;
+}
+
+function fail($numFail)
+{
+    throw new Exception('Error ' . $numFail . ' at ' . date('j F Y h:i:s'));
+}
+
+
+$t->test(5);

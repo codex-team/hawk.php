@@ -36,17 +36,27 @@ final class Stacktrace
         $stack = $exception->getTrace();
 
         /**
-         * Get real exception position
+         * Prepare new stack to be filled
          */
-        $errorPosition = [
-            'file' => $exception->getFile(),
-            'line' => $exception->getLine()
-        ];
+        $newStack = [];
 
         /**
-         * Reverse stack to go through from first call in project's entry point
+         * Frames iterator
          */
-        $stack = array_reverse($stack);
+        $i = 0;
+
+        /**
+         * Add real error's path to trace chain
+         *
+         * Stack does not contain the latest (real) event frame
+         * so we use getFile() and getLine() exception's methods
+         * to get data for sources.
+         */
+        $newStack[$i] = [
+            'file'       => $exception->getFile(),
+            'line'       => $exception->getLine(),
+            'sourceCode' => self::getAdjacentLines($exception->getFile(), $exception->getLine()),
+        ];
 
         /**
          * This flag tells us that we have already found string with error
@@ -81,7 +91,7 @@ final class Stacktrace
             /**
              * Is it our error? Check for a file and line similarity
              */
-            if ($errorPosition['file'] == $callee['file'] && $errorPosition['line'] == $callee['line']) {
+            if ($exception->getFile() == $callee['file'] && $exception->getLine() == $callee['line']) {
                 /**
                  * We have found error in stack
                  * Then we can ignore all other calls
@@ -97,39 +107,174 @@ final class Stacktrace
                 continue;
             }
 
+            $frame = $stack[$index];
+
             /**
-             * Save a couple of lines in the file by number of target line
+             * Compose new frame
              */
-            $stack[$index]['trace'] = self::getAdjacentLines($callee['file'], $callee['line']);
+            $newStack[++$i] = [
+                'file'       => $frame['file'],
+                'line'       => $frame['line'],
+                'sourceCode' => self::getAdjacentLines($frame['file'], $frame['line']),
+            ];
+
+            /**
+             * Fill function and arguments data for the previous frame
+             *
+             * Each stack's frame contains data about the called method
+             * and it's arguments but this data is useful only for
+             * the previous frame because we get source code line
+             * for that method.
+             *
+             * For the oldest frame (the last frame in the stack) we have
+             * no method (and arguments) because it is an entry point
+             * for the script. Then these fields for the last stack
+             * frame $i will be empty.
+             */
+            $newStack[$i - 1]['function'] = self::composeFunctionName($frame);
+            $newStack[$i - 1]['arguments'] = self::getArgs($frame);
+        }
+
+        return $newStack;
+    }
+
+    /**
+     * Compose function name with a class for frame
+     *
+     * @param array $frame - backtrace frame
+     *
+     * @return string
+     */
+    private static function composeFunctionName(array $frame): string
+    {
+        /**
+         * Set an empty function name to be returned
+         */
+        $functionName = '';
+
+        /**
+         * Fill name with a class name and type '::' or '->'
+         */
+        if (!empty($frame['class'])) {
+            $functionName = $frame['class'] . $frame['type'];
         }
 
         /**
-         * Add real error's path to trace chain
+         * Add a real function name
          */
-        $stack[] = [
-            'file'       => $errorPosition['file'],
-            'line'       => $errorPosition['line'],
-            'sourceCode' => self::getAdjacentLines($errorPosition['file'], $errorPosition['line'])
-        ];
+        $functionName .= $frame['function'];
+
+        return $functionName;
+    }
+
+    /**
+     * Get function arguments for a frame
+     *
+     * @param array $frame - backtrace frame
+     *
+     * @return array
+     */
+    private static function getArgs(array $frame): array
+    {
+        /**
+         * Defining an array of arguments to be returned
+         */
+        $arguments = [];
 
         /**
-         * Normalize array's indexes
+         * If args param is not exist or empty
+         * then return empty args array
          */
-        $stack = array_values($stack);
+        if (empty($frame['args'])) {
+            return $arguments;
+        }
 
         /**
-         * Reverse stack back to have the latest call at the start of array
+         * ReflectionFunction/ReflectionMethod class reports information
+         * about a function/method.
          */
-        $stack = array_reverse($stack);
+        $reflection = self::getReflectionMethod($frame);
 
-        return $stack;
+        /**
+         * If reflection function in missing then create a simple list of arguments
+         */
+        if (!$reflection) {
+            foreach ($frame['args'] as $index => $value) {
+                $arguments['arg' . $index] = $value;
+            }
+        } else {
+            /**
+             * Get reflection params
+             */
+            $reflectionParams = $reflection->getParameters();
+
+            /**
+             * Passing through reflection params to get real names for values
+             */
+            foreach ($reflectionParams as $reflectionParam) {
+                $paramName = $reflectionParam->getName();
+                $paramPosition = $reflectionParam->getPosition();
+
+                if ($frame['args'][$paramPosition]) {
+                    $arguments[$paramName] = $frame['args'][$paramPosition];
+                }
+            }
+        }
+
+        /**
+         * @todo Remove the following code when hawk.types
+         *       supports non-iterable list of arguments
+         */
+        $newArguments = [];
+        foreach ($arguments as $name => $value) {
+            $newArguments[] = $name . ' = ' . $value;
+        }
+        $arguments = $newArguments;
+
+        return $arguments;
+    }
+
+    /**
+     * Trying to create a reflection method
+     *
+     * @param array $frame - backtrace frame
+     *
+     * @return \ReflectionFunction|\ReflectionMethod|null
+     */
+    private static function getReflectionMethod(array $frame): ?ReflectionFunctionAbstract
+    {
+        /**
+         * Trying to create a correct reflection
+         */
+        try {
+            /**
+             * If we know class and method
+             */
+            if (!empty($frame['class']) && !empty($frame['function'])) {
+                return new \ReflectionMethod($frame['class'], $frame['function']);
+            }
+
+            /**
+             * If class name is missing then create a non-class function
+             */
+            if (empty($frame['class'])) {
+                return new \ReflectionFunction($frame['function']);
+            }
+        } catch (\ReflectionException $e) {
+            // Cannot create a reflection
+        }
+
+        /**
+         * Return null if we cannot create a reflection
+         */
+        return null;
     }
 
     /**
      * Get path of file near target line to return as array
      *
-     * @param string $filepath
-     * @param int    $line
+     * @param string $filepath path to source file
+     * @param int    $line     number of the target line
      * @param int    $margin   max number of lines before and after target line
      *                         to be returned
      *
@@ -169,10 +314,7 @@ final class Stacktrace
              * and after end of file will be returned NULL
              */
             if (!empty($fileLines[$line])) {
-                /**
-                 * Escape HTML chars
-                 */
-                $lineContent = htmlspecialchars($fileLines[$line]);
+                $lineContent = $fileLines[$line];
 
                 /**
                  * Remove line breaks
