@@ -228,8 +228,24 @@ final class Stacktrace
          */
         $newArguments = [];
         foreach ($arguments as $name => $value) {
-            $newArguments[] = $name . ' = ' . $value;
+            $value = null;
+            if (is_object($value)) {
+                $value = get_class($value);
+            } else if (is_array($value)) {
+                $value = implode(',', $value);
+            } else if (is_bool($value)) {
+                $value = $value === true ? 'true' : 'false';
+            } else if (is_null($value)) {
+                $value = 'null';
+            }
+
+            try {
+                $newArguments[] = sprintf('%s = %s', $name, $value);
+            } catch (\Exception $e) {
+                // Ignore unknown types
+            }
         }
+
         $arguments = $newArguments;
 
         return $arguments;

@@ -94,7 +94,7 @@ final class Handler
      */
     public function catchEvent(array $payload): void
     {
-        $payload['context'] = array_merge($this->context, $payload['context']);
+        $payload['context'] = array_merge($this->context, $payload['context'] ?? []);
         $payload['user'] = $this->user;
 
         $eventPayload = $this->eventPayloadFactory->create($payload);
