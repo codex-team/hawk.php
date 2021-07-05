@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Hawk\Tests\Unit\Monolog;
 
-use Hawk\Catcher;
 use Hawk\Monolog\Handler;
 use PHPUnit\Framework\TestCase;
 
