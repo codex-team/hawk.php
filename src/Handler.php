@@ -13,7 +13,7 @@ use Throwable;
  *
  * @package Hawk
  */
-final class Handler
+class Handler
 {
     /**
      * Options object

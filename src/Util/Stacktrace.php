@@ -228,16 +228,7 @@ final class Stacktrace
          */
         $newArguments = [];
         foreach ($arguments as $name => $value) {
-            $value = null;
-            if (is_object($value)) {
-                $value = get_class($value);
-            } else if (is_array($value)) {
-                $value = implode(',', $value);
-            } else if (is_bool($value)) {
-                $value = $value === true ? 'true' : 'false';
-            } else if (is_null($value)) {
-                $value = 'null';
-            }
+            $value = self::stringifyValue($value);
 
             try {
                 $newArguments[] = sprintf('%s = %s', $name, $value);
@@ -352,5 +343,29 @@ final class Stacktrace
         }
 
         return $nearErrorFileLines;
+    }
+
+    /**
+     * Returns value casted to string (used to show arguments value)
+     *
+     * @param $value
+     *
+     * @return string
+     */
+    private static function stringifyValue($value): string
+    {
+        if (is_object($value)) {
+            $value = get_class($value);
+        } elseif (is_array($value)) {
+            $value = implode(',', $value);
+        } elseif (is_bool($value)) {
+            $value = $value === true ? 'true' : 'false';
+        } elseif (is_null($value)) {
+            $value = 'null';
+        } else {
+            $value = '';
+        }
+
+        return $value;
     }
 }
