@@ -9,7 +9,7 @@ namespace Hawk;
  *
  * @package Hawk
  */
-final class Options
+class Options
 {
     /**
      * Default available options
@@ -29,7 +29,7 @@ final class Options
      *
      * @param array $options
      */
-    public function __construct(array $options)
+    public function __construct(array $options = [])
     {
         $this->options = array_merge($this->options, $options);
     }
