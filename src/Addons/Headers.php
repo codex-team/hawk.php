@@ -12,30 +12,26 @@ namespace Hawk\Addons;
 class Headers implements AddonInterface
 {
     /**
-     * @var string[]
-     */
-    private $fields = [
-        'DOCUMENT_ROOT',
-        'REMOTE_ADDR',
-        'REMOTE_PORT',
-        'SERVER_PROTOCOL',
-        'SERVER_NAME',
-        'SERVER_PORT',
-        'HTTP_CONNECTION',
-        'HTTP_CACHE_CONTROL',
-        'HTTP_USER_AGENT',
-        'HTTP_ACCEPT',
-        'QUERY_STRING'
-    ];
-
-    /**
      * @inheritDoc
      */
     public function resolve(): array
     {
-        $result = [];
-        foreach ($this->fields as $field) {
-            $result[$field] = $_SERVER[$field] ?? '';
+        if (function_exists('getallheaders')) {
+            $result = getallheaders();
+        } else {
+            $result = [];
+            foreach ($_SERVER as $key => $value) {
+                if (substr($key, 0, 5) == 'HTTP_') {
+                    $key = str_replace(
+                        ' ',
+                        '-',
+                        ucwords(strtolower(str_replace('_', ' ', substr($key, 5))))
+                    );
+                    $result[$key] = $value;
+                } else {
+                    $result[$key] = $value;
+                }
+            }
         }
 
         return $result;

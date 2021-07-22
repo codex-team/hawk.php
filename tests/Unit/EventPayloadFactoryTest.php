@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Hawk\Tests\Unit;
 
+use Hawk\Catcher;
 use Hawk\EventPayload;
 use Hawk\EventPayloadFactory;
 use PHPUnit\Framework\TestCase;
 
 class EventPayloadFactoryTest extends TestCase
 {
-    public function testCreationWithDefaultStacktrace(): void
+    public function testCreationWithDefaultException(): void
     {
         $context = [
             'special'
@@ -32,7 +33,7 @@ class EventPayloadFactoryTest extends TestCase
         $this->assertSame($context, $payload->getContext());
     }
 
-    public function testCreationWithCustomStacktrace(): void
+    public function testCreationWithCustomException(): void
     {
         $exception = new \Exception('exception message');
 

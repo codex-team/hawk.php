@@ -29,8 +29,6 @@ class EventPayloadFactory
      */
     public function __construct()
     {
-        $this->addonsResolvers['runtime'] = new Runtime();
-        $this->addonsResolvers['server'] = new Os();
         $this->addonsResolvers['headers'] = new Headers();
     }
 
