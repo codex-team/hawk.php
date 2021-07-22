@@ -6,8 +6,6 @@ namespace Hawk;
 
 use Hawk\Addons\AddonInterface;
 use Hawk\Addons\Headers;
-use Hawk\Addons\Os;
-use Hawk\Addons\Runtime;
 use Hawk\Util\Stacktrace;
 
 /**
