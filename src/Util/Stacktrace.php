@@ -356,6 +356,8 @@ final class Stacktrace
     {
         if (is_object($value)) {
             $value = get_class($value);
+        } elseif (is_iterable($value)) {
+            $value = implode(',', iterator_to_array($value));
         } elseif (is_array($value)) {
             $value = implode(',', $value);
         } elseif (is_bool($value)) {
@@ -363,7 +365,7 @@ final class Stacktrace
         } elseif (is_null($value)) {
             $value = 'null';
         } else {
-            $value = '';
+            $value = (string) $value;
         }
 
         return $value;
