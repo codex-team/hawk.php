@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Hawk\Tests\Unit;
 
-use Hawk\Catcher;
 use Hawk\EventPayload;
 use Hawk\EventPayloadFactory;
 use PHPUnit\Framework\TestCase;
