@@ -228,8 +228,15 @@ final class Stacktrace
          */
         $newArguments = [];
         foreach ($arguments as $name => $value) {
-            $newArguments[] = $name . ' = ' . $value;
+            $value = self::stringifyValue($value);
+
+            try {
+                $newArguments[] = sprintf('%s = %s', $name, $value);
+            } catch (\Exception $e) {
+                // Ignore unknown types
+            }
         }
+
         $arguments = $newArguments;
 
         return $arguments;
@@ -336,5 +343,31 @@ final class Stacktrace
         }
 
         return $nearErrorFileLines;
+    }
+
+    /**
+     * Returns value casted to string (used to show arguments value)
+     *
+     * @param $value
+     *
+     * @return string
+     */
+    private static function stringifyValue($value): string
+    {
+        if (is_object($value)) {
+            $value = get_class($value);
+        } elseif (is_iterable($value)) {
+            $value = implode(',', iterator_to_array($value));
+        } elseif (is_array($value)) {
+            $value = implode(',', $value);
+        } elseif (is_bool($value)) {
+            $value = $value === true ? 'true' : 'false';
+        } elseif (is_null($value)) {
+            $value = 'null';
+        } else {
+            $value = (string) $value;
+        }
+
+        return $value;
     }
 }

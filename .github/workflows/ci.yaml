@@ -15,3 +15,43 @@ jobs:
 
       - name: PHP CS Fixer
         run: php-cs-fixer fix --config=.php-cs-fixer.php --using-cache=no --verbose --dry-run
+
+  build:
+    name: Build and UnitTest
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks out a copy of your repository on the ubuntu-latest machine
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Sets PHP 7,4 version
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 7.4
+          tools: phpunit
+
+      # Validate composer files
+      - name: Validate composer.json and composer.lock
+        run: composer validate
+
+      # Cache packages
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v2
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      # Install dependencies
+      - name: Install dependencies
+        if: steps.composer-cache.outputs.cache-hit != 'true'
+        run: composer install --prefer-dist --no-progress
+
+      # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
+      # Docs: https://getcomposer.org/doc/articles/scripts.md
+      - name: Run test suite
+        run: composer run-script test
