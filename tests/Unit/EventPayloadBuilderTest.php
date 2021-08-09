@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Hawk\Tests\Unit;
 
 use Hawk\EventPayload;
-use Hawk\EventPayloadFactory;
+use Hawk\EventPayloadBuilder;
+use Hawk\StacktraceFrameBuilder;
 use PHPUnit\Framework\TestCase;
 
-class EventPayloadFactoryTest extends TestCase
+class EventPayloadBuilderTest extends TestCase
 {
     public function testCreationWithDefaultException(): void
     {
@@ -21,8 +22,9 @@ class EventPayloadFactoryTest extends TestCase
             'name' => 'Tester'
         ];
 
-        $factory = new EventPayloadFactory();
-        $payload = $factory->create([
+        $stacktraceFrameBuilder = new StacktraceFrameBuilder();
+        $eventPayloadBuilder = new EventPayloadBuilder($stacktraceFrameBuilder);
+        $payload = $eventPayloadBuilder->create([
             'context' => $context,
             'user' => $user,
         ]);
@@ -36,8 +38,10 @@ class EventPayloadFactoryTest extends TestCase
     {
         $exception = new \Exception('exception message');
 
-        $factory = new EventPayloadFactory();
-        $payload = $factory->create([
+        $stacktraceFrameBuilder = new StacktraceFrameBuilder();
+
+        $eventPayloadBuilder = new EventPayloadBuilder($stacktraceFrameBuilder);
+        $payload = $eventPayloadBuilder->create([
             'context' => [],
             'user' => [],
             'exception' => $exception

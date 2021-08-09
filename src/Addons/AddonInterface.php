@@ -12,6 +12,13 @@ namespace Hawk\Addons;
 interface AddonInterface
 {
     /**
+     * Returns addon group name
+     *
+     * @return string
+     */
+    public function getName(): string;
+
+    /**
      * Returns addon extra data
      *
      * @return array

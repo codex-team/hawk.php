@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hawk;
 
+use Hawk\Addons\Headers;
 use Hawk\Transport\CurlTransport;
 use Throwable;
 
@@ -29,16 +30,6 @@ final class Catcher
      * @var Handler
      */
     private $handler;
-
-    /**
-     * @var array
-     */
-    private $user = [];
-
-    /**
-     * @var array
-     */
-    private $context = [];
 
     /**
      * Static method to initialize Catcher
@@ -149,10 +140,16 @@ final class Catcher
     private function __construct(array $options)
     {
         $options = new Options($options);
-        $factory = new EventPayloadFactory();
+
+        $serializer = new Serializer();
+        $stacktraceBuilder = new StacktraceFrameBuilder($serializer);
+
+        $builder = new EventPayloadBuilder($stacktraceBuilder);
+        $builder->registerAddon(new Headers());
+
         $transport = new CurlTransport($options->getUrl());
 
-        $this->handler = new Handler($options, $transport, $factory);
+        $this->handler = new Handler($options, $transport, $builder);
         $this->handler->enableHandlers();
     }
 }
