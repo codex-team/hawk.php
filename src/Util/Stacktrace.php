@@ -357,9 +357,11 @@ final class Stacktrace
         if (is_object($value)) {
             $value = get_class($value);
         } elseif (is_iterable($value)) {
-            $value = implode(',', iterator_to_array($value));
-        } elseif (is_array($value)) {
-            $value = implode(',', $value);
+            if (is_array($value)) {
+                $value = implode(',', $value);
+            } else {
+                $value = implode(',', iterator_to_array($value));
+            }
         } elseif (is_bool($value)) {
             $value = $value === true ? 'true' : 'false';
         } elseif (is_null($value)) {
