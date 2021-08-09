@@ -7,6 +7,7 @@ namespace Hawk\Tests\Unit;
 use Hawk\EventPayload;
 use Hawk\EventPayloadBuilder;
 use Hawk\StacktraceFrameBuilder;
+use Hawk\Serializer;
 use PHPUnit\Framework\TestCase;
 
 class EventPayloadBuilderTest extends TestCase
@@ -22,7 +23,8 @@ class EventPayloadBuilderTest extends TestCase
             'name' => 'Tester'
         ];
 
-        $stacktraceFrameBuilder = new StacktraceFrameBuilder();
+        $serializer = new Serializer();
+        $stacktraceFrameBuilder = new StacktraceFrameBuilder($serializer);
         $eventPayloadBuilder = new EventPayloadBuilder($stacktraceFrameBuilder);
         $payload = $eventPayloadBuilder->create([
             'context' => $context,
@@ -38,7 +40,8 @@ class EventPayloadBuilderTest extends TestCase
     {
         $exception = new \Exception('exception message');
 
-        $stacktraceFrameBuilder = new StacktraceFrameBuilder();
+        $serializer = new Serializer();
+        $stacktraceFrameBuilder = new StacktraceFrameBuilder($serializer);
 
         $eventPayloadBuilder = new EventPayloadBuilder($stacktraceFrameBuilder);
         $payload = $eventPayloadBuilder->create([

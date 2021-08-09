@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Hawk\Tests\Unit;
 
-use Hawk\Options;
 use Hawk\Serializer;
-use Hawk\StacktraceFrameBuilder;
 use PHPUnit\Framework\TestCase;
 
 class SerializerTest extends TestCase
 {
     /**
      * @dataProvider valueProvider
+     *
+     * @param mixed $testCase
      */
     public function testSerializationResult($testCase)
     {
@@ -57,7 +57,8 @@ class SerializerTest extends TestCase
             ],
             [
                 [
-                    'value' => [function() {}, \Closure::class],
+                    'value' => [function () {
+                    }, \Closure::class],
                     'expect' => 'Closure,Closure'
                 ]
             ],
@@ -75,7 +76,8 @@ class SerializerTest extends TestCase
             ],
             [
                 [
-                    'value' => [[1, 2, 3], 'something', [function () {}, [new \stdClass()]]],
+                    'value' => [[1, 2, 3], 'something', [function () {
+                    }, [new \stdClass()]]],
                     'expect' => '1,2,3,something,Closure,stdClass'
                 ]
             ],
