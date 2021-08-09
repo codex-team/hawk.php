@@ -23,17 +23,16 @@ final class Serializer
         if (is_object($value)) {
             $value = get_class($value);
         } elseif (is_iterable($value)) {
-            if (is_array($value)) {
-                $collection = [];
-                foreach ($value as $val) {
-                    $collection[] = $this->serializeValue($val);
-                }
-
-                $value = implode(',', $collection);
-            } else {
-                $value = implode(',', iterator_to_array($value));
+            if (!is_array($value)) {
+                $value = iterator_to_array($value);
             }
 
+            $arrayValues = [];
+            foreach ($value as $val) {
+                $arrayValues[] = $this->serializeValue($val);
+            }
+
+            $value = implode(',', $arrayValues);
         } elseif (is_bool($value)) {
             $value = $value === true ? 'true' : 'false';
         } elseif (is_null($value)) {

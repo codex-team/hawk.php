@@ -90,6 +90,12 @@ class SerializerTest extends TestCase
                     'value' => [new \ArrayIterator([1, 2, 3])],
                     'expect' => 'ArrayIterator'
                 ]
+            ],
+            [
+                [
+                    'value' => new \CachingIterator(new \ArrayIterator()),
+                    'expect' => 'CachingIterator'
+                ]
             ]
         ];
     }
