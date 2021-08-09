@@ -6,8 +6,8 @@ namespace Hawk\Tests\Unit;
 
 use Hawk\EventPayload;
 use Hawk\EventPayloadBuilder;
-use Hawk\StacktraceFrameBuilder;
 use Hawk\Serializer;
+use Hawk\StacktraceFrameBuilder;
 use PHPUnit\Framework\TestCase;
 
 class EventPayloadBuilderTest extends TestCase
