@@ -231,7 +231,7 @@ final class StacktraceFrameBuilder
                 $paramName = $reflectionParam->getName();
                 $paramPosition = $reflectionParam->getPosition();
 
-                if ($frame['args'][$paramPosition]) {
+                if (isset($frame['args'][$paramPosition])) {
                     $arguments[$paramName] = $frame['args'][$paramPosition];
                 }
             }
