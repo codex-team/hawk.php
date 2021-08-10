@@ -12,7 +12,7 @@ namespace Hawk\Addons;
 interface AddonInterface
 {
     /**
-     * Returns addon group name
+     * Returns addon name
      *
      * @return string
      */

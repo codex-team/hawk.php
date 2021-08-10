@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Hawk;
 
 /**
- * Class Serializer
+ * Class Serializer is used to serialize values before sending to the Hawk
  *
  * @package Hawk
  */

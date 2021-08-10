@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Hawk;
 
 /**
- * Event value-object
+ * This value-object class used to keep complete Event data to send
  *
  * @package Hawk
  */

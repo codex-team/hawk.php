@@ -11,8 +11,6 @@ class SerializerTest extends TestCase
 {
     /**
      * @dataProvider valueProvider
-     *
-     * @param mixed $testCase
      */
     public function testSerializationResult($testCase)
     {
@@ -22,6 +20,11 @@ class SerializerTest extends TestCase
         $this->assertEquals($testCase['expect'], $result);
     }
 
+    /**
+     * Returns list of test cases
+     *
+     * @return array
+     */
     public function valueProvider(): array
     {
         return [

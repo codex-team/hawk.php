@@ -21,6 +21,8 @@ class EventPayloadBuilder
     private $addonsResolvers = [];
 
     /**
+     * StacktraceFrameBuilder object. Used to parse exception stacktrace
+     *
      * @var StacktraceFrameBuilder
      */
     private $stacktraceFrameBuilder;
@@ -34,6 +36,8 @@ class EventPayloadBuilder
     }
 
     /**
+     * Adds addon resolver to the list
+     *
      * @param AddonInterface $addon
      *
      * @return $this

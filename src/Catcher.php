@@ -141,9 +141,15 @@ final class Catcher
     {
         $options = new Options($options);
 
+        /**
+         * Init stacktrace frames builder and inject serializer
+         */
         $serializer = new Serializer();
         $stacktraceBuilder = new StacktraceFrameBuilder($serializer);
 
+        /**
+         * Prepare Event payload builder
+         */
         $builder = new EventPayloadBuilder($stacktraceBuilder);
         $builder->registerAddon(new Headers());
 

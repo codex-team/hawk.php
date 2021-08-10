@@ -14,9 +14,13 @@ class StacktraceFrameBuilderTest extends TestCase
     {
         $serializer = new Serializer();
         $fixture = new StacktraceFrameBuilder($serializer);
-        $exception = new \Exception();
 
-        $stacktrace = $fixture->buildStack($exception);
-        $this->assertCount(11, $stacktrace);
+        $testCase = [
+            'exception' => new \Exception(),
+            'stackSize' => 11
+        ];
+
+        $stacktrace = $fixture->buildStack($testCase['exception']);
+        $this->assertCount($testCase['stackSize'], $stacktrace);
     }
 }
