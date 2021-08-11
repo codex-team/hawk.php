@@ -5,15 +5,13 @@ declare(strict_types=1);
 namespace Hawk;
 
 use Hawk\Addons\AddonInterface;
-use Hawk\Addons\Headers;
-use Hawk\Util\Stacktrace;
 
 /**
- * Class EventPayloadFactory is a factory object
+ * Class EventPayloadBuilder is a factory object
  *
  * @package Hawk
  */
-class EventPayloadFactory
+class EventPayloadBuilder
 {
     /**
      * List of addon resolvers
@@ -23,11 +21,32 @@ class EventPayloadFactory
     private $addonsResolvers = [];
 
     /**
+     * StacktraceFrameBuilder object. Used to parse exception stacktrace
+     *
+     * @var StacktraceFrameBuilder
+     */
+    private $stacktraceFrameBuilder;
+
+    /**
      * EventPayloadFactory constructor.
      */
-    public function __construct()
+    public function __construct(StacktraceFrameBuilder $stacktraceFrameBuilder)
     {
-        $this->addonsResolvers['headers'] = new Headers();
+        $this->stacktraceFrameBuilder = $stacktraceFrameBuilder;
+    }
+
+    /**
+     * Adds addon resolver to the list
+     *
+     * @param AddonInterface $addon
+     *
+     * @return $this
+     */
+    public function registerAddon(AddonInterface $addon): self
+    {
+        $this->addonsResolvers[] = $addon;
+
+        return $this;
     }
 
     /**
@@ -46,7 +65,7 @@ class EventPayloadFactory
 
         if (isset($data['exception']) && $data['exception'] instanceof \Throwable) {
             $exception = $data['exception'];
-            $stacktrace = Stacktrace::buildStack($exception);
+            $stacktrace = $this->stacktraceFrameBuilder->buildStack($exception);
 
             $eventPayload->setTitle($exception->getMessage());
         } else {
@@ -75,7 +94,7 @@ class EventPayloadFactory
          * @var AddonInterface $resolver
          */
         foreach ($this->addonsResolvers as $key => $resolver) {
-            $result[$key] = $resolver->resolve();
+            $result[$resolver->getName()] = $resolver->resolve();
         }
 
         return $result;

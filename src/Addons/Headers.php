@@ -12,6 +12,14 @@ namespace Hawk\Addons;
 class Headers implements AddonInterface
 {
     /**
+     * @inheritdoc
+     */
+    public function getName(): string
+    {
+        return 'header';
+    }
+
+    /**
      * @inheritDoc
      */
     public function resolve(): array

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Hawk\Util;
+namespace Hawk;
 
 use ReflectionFunctionAbstract;
 use Throwable;
@@ -12,8 +12,23 @@ use Throwable;
  *
  * @package Hawk\Util
  */
-final class Stacktrace
+final class StacktraceFrameBuilder
 {
+    /**
+     * @var Serializer
+     */
+    private $serializer;
+
+    /**
+     * StacktraceFrameBuilder constructor.
+     *
+     * @param Serializer $serializer
+     */
+    public function __construct(Serializer $serializer)
+    {
+        $this->serializer = $serializer;
+    }
+
     /**
      * Build exception backtrace.
      *
@@ -29,7 +44,7 @@ final class Stacktrace
      *
      * @return array
      */
-    public static function buildStack(Throwable $exception): array
+    public function buildStack(Throwable $exception): array
     {
         /**
          * Get trace to exception
@@ -56,7 +71,7 @@ final class Stacktrace
         $newStack[$i] = [
             'file'       => $exception->getFile(),
             'line'       => $exception->getLine(),
-            'sourceCode' => self::getAdjacentLines($exception->getFile(), $exception->getLine()),
+            'sourceCode' => $this->getAdjacentLines($exception->getFile(), $exception->getLine()),
         ];
 
         /**
@@ -116,7 +131,7 @@ final class Stacktrace
             $newStack[++$i] = [
                 'file'       => $frame['file'],
                 'line'       => $frame['line'],
-                'sourceCode' => self::getAdjacentLines($frame['file'], $frame['line']),
+                'sourceCode' => $this->getAdjacentLines($frame['file'], $frame['line']),
             ];
 
             /**
@@ -132,8 +147,8 @@ final class Stacktrace
              * for the script. Then these fields for the last stack
              * frame $i will be empty.
              */
-            $newStack[$i - 1]['function'] = self::composeFunctionName($frame);
-            $newStack[$i - 1]['arguments'] = self::getArgs($frame);
+            $newStack[$i - 1]['function'] = $this->composeFunctionName($frame);
+            $newStack[$i - 1]['arguments'] = $this->getArgs($frame);
         }
 
         return $newStack;
@@ -146,7 +161,7 @@ final class Stacktrace
      *
      * @return string
      */
-    private static function composeFunctionName(array $frame): string
+    private function composeFunctionName(array $frame): string
     {
         /**
          * Set an empty function name to be returned
@@ -175,7 +190,7 @@ final class Stacktrace
      *
      * @return array
      */
-    private static function getArgs(array $frame): array
+    private function getArgs(array $frame): array
     {
         /**
          * Defining an array of arguments to be returned
@@ -194,7 +209,7 @@ final class Stacktrace
          * ReflectionFunction/ReflectionMethod class reports information
          * about a function/method.
          */
-        $reflection = self::getReflectionMethod($frame);
+        $reflection = $this->getReflectionMethod($frame);
 
         /**
          * If reflection function in missing then create a simple list of arguments
@@ -216,7 +231,7 @@ final class Stacktrace
                 $paramName = $reflectionParam->getName();
                 $paramPosition = $reflectionParam->getPosition();
 
-                if ($frame['args'][$paramPosition]) {
+                if (isset($frame['args'][$paramPosition])) {
                     $arguments[$paramName] = $frame['args'][$paramPosition];
                 }
             }
@@ -228,7 +243,7 @@ final class Stacktrace
          */
         $newArguments = [];
         foreach ($arguments as $name => $value) {
-            $value = self::stringifyValue($value);
+            $value = $this->serializer->serializeValue($value);
 
             try {
                 $newArguments[] = sprintf('%s = %s', $name, $value);
@@ -249,7 +264,7 @@ final class Stacktrace
      *
      * @return \ReflectionFunction|\ReflectionMethod|null
      */
-    private static function getReflectionMethod(array $frame): ?ReflectionFunctionAbstract
+    private function getReflectionMethod(array $frame): ?ReflectionFunctionAbstract
     {
         /**
          * Trying to create a correct reflection
@@ -288,7 +303,7 @@ final class Stacktrace
      *
      * @return array
      */
-    private static function getAdjacentLines(string $filepath, int $line, int $margin = 5): array
+    private function getAdjacentLines(string $filepath, int $line, int $margin = 5): array
     {
         /**
          * Get file as array of lines
@@ -343,33 +358,5 @@ final class Stacktrace
         }
 
         return $nearErrorFileLines;
-    }
-
-    /**
-     * Returns value casted to string (used to show arguments value)
-     *
-     * @param $value
-     *
-     * @return string
-     */
-    private static function stringifyValue($value): string
-    {
-        if (is_object($value)) {
-            $value = get_class($value);
-        } elseif (is_iterable($value)) {
-            if (is_array($value)) {
-                $value = implode(',', $value);
-            } else {
-                $value = implode(',', iterator_to_array($value));
-            }
-        } elseif (is_bool($value)) {
-            $value = $value === true ? 'true' : 'false';
-        } elseif (is_null($value)) {
-            $value = 'null';
-        } else {
-            $value = (string) $value;
-        }
-
-        return $value;
     }
 }

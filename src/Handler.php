@@ -30,11 +30,11 @@ class Handler
     private $transport;
 
     /**
-     * Events payload factory object
+     * Events payload builder object
      *
-     * @var EventPayloadFactory
+     * @var EventPayloadBuilder
      */
-    private $eventPayloadFactory;
+    private $eventPayloadBuilder;
 
     /**
      * @var array
@@ -51,16 +51,16 @@ class Handler
      *
      * @param Options             $options
      * @param TransportInterface  $transport
-     * @param EventPayloadFactory $eventPayloadFactory
+     * @param EventPayloadBuilder $eventPayloadBuilder
      */
     public function __construct(
         Options $options,
         TransportInterface $transport,
-        EventPayloadFactory $eventPayloadFactory
+        EventPayloadBuilder $eventPayloadBuilder
     ) {
         $this->options = $options;
         $this->transport = $transport;
-        $this->eventPayloadFactory = $eventPayloadFactory;
+        $this->eventPayloadBuilder = $eventPayloadBuilder;
     }
 
     /**
@@ -97,7 +97,7 @@ class Handler
         $payload['context'] = array_merge($this->context, $payload['context'] ?? []);
         $payload['user'] = $this->user;
 
-        $eventPayload = $this->eventPayloadFactory->create($payload);
+        $eventPayload = $this->eventPayloadBuilder->create($payload);
         $event = $this->prepareEvent($eventPayload);
 
         if ($event !== null) {
@@ -119,7 +119,7 @@ class Handler
             'user'      => $this->user
         ];
 
-        $eventPayload = $this->eventPayloadFactory->create($data);
+        $eventPayload = $this->eventPayloadBuilder->create($data);
         $event = $this->prepareEvent($eventPayload);
 
         if ($event !== null) {
@@ -148,7 +148,7 @@ class Handler
             'user'      => $this->user
         ];
 
-        $eventPayload = $this->eventPayloadFactory->create($data);
+        $eventPayload = $this->eventPayloadBuilder->create($data);
         $event = $this->prepareEvent($eventPayload);
 
         if ($event !== null) {
@@ -183,7 +183,7 @@ class Handler
             'user'      => $this->user
         ];
 
-        $eventPayload = $this->eventPayloadFactory->create($payload);
+        $eventPayload = $this->eventPayloadBuilder->create($payload);
         $event = $this->prepareEvent($eventPayload);
 
         if ($event !== null) {

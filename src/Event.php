@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Hawk;
 
 /**
+ * This value-object class used to keep complete Event data to send
+ *
  * @package Hawk
  */
 final class Event implements \JsonSerializable
