@@ -10,16 +10,10 @@ PHP errors Catcher for [Hawk.so](https://hawk.so).
 
 2. Install SDK via [composer](https://getcomposer.org) to install the Catcher
 
-For PHP 7.2 or above
+Catcher provides support for PHP 7.2 or later
 
 ```bash
-$ composer require codex-team/hawk.php:^2.2.
-```
-
-For PHP 7.0 and PHP 7.1
-
-```bash
-$ composer require codex-team/hawk.php:^2.1.
+$ composer require codex-team/hawk.php
 ```
 
 ### Configuration
