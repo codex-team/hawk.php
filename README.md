@@ -8,7 +8,9 @@ PHP errors Catcher for [Hawk.so](https://hawk.so).
 
 1. [Register](https://hawk.so/join) an account and get Integration Token.
 
-2. Install SDK via [composer](https://getcomposer.org) to install Catcher
+2. Install SDK via [composer](https://getcomposer.org) to install the Catcher
+
+Catcher provides support for PHP 7.2 or later
 
 ```bash
 $ composer require codex-team/hawk.php
