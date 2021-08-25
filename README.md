@@ -6,7 +6,7 @@ PHP errors Catcher for [Hawk.so](https://hawk.so).
 
 ## Setup
 
-1. [Register](https://hawk.so/join) an account and get Integration Token.
+1. [Register](https://garage.hawk.so/sign-up) an account, create a Project and get an Integration Token.
 
 2. Install SDK via [composer](https://getcomposer.org) to install the Catcher
 
