@@ -1,7 +1,7 @@
 {
     "name": "codex-team/hawk.php",
     "description": "PHP errors Catcher module for Hawk.so",
-    "keywords": ["hawk", "php", "error", "catcher", "monolog"],
+    "keywords": ["hawk", "php", "error", "catcher"],
     "type": "library",
     "version": "2.1.5",
     "license": "MIT",
