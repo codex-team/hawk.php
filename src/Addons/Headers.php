@@ -16,7 +16,7 @@ class Headers implements AddonInterface
      */
     public function getName(): string
     {
-        return 'header';
+        return 'headers';
     }
 
     /**
