@@ -7,6 +7,7 @@ namespace Hawk\Tests\Unit;
 use Hawk\EventPayload;
 use Hawk\EventPayloadBuilder;
 use Hawk\Serializer;
+use Hawk\Severity;
 use Hawk\StacktraceFrameBuilder;
 use PHPUnit\Framework\TestCase;
 
@@ -47,12 +48,14 @@ class EventPayloadBuilderTest extends TestCase
         $payload = $eventPayloadBuilder->create([
             'context' => [],
             'user' => [],
-            'exception' => $exception
+            'exception' => $exception,
+            'type' => 1
         ]);
 
         $this->assertInstanceOf(EventPayload::class, $payload);
         $this->assertEmpty($payload->getContext());
         $this->assertEmpty($payload->getUser());
         $this->assertEquals($exception->getMessage(), $payload->getTitle());
+        $this->assertEquals($payload->getType(), Severity::fatal());
     }
 }
