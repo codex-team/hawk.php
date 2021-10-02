@@ -6,11 +6,11 @@ namespace Hawk;
 
 class Severity
 {
-    public const DEBUG = 'debug';
-    public const INFO = 'info';
-    public const WARNING = 'warning';
-    public const ERROR = 'error';
-    public const FATAL = 'fatal';
+    public const DEBUG = 'Debug';
+    public const INFO = 'Info';
+    public const WARNING = 'Warning';
+    public const ERROR = 'Error';
+    public const FATAL = 'Fatal';
 
     /**
      * @var string
