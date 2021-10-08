@@ -145,7 +145,8 @@ class Handler
         $data = [
             'exception' => $exception,
             'context'   => $this->context,
-            'user'      => $this->user
+            'user'      => $this->user,
+            'type'      => $exception->getSeverity()
         ];
 
         $eventPayload = $this->eventPayloadBuilder->create($data);

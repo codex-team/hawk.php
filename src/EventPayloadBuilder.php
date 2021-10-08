@@ -72,6 +72,10 @@ class EventPayloadBuilder
             $stacktrace = debug_backtrace();
         }
 
+        if (isset($data['type'])) {
+            $eventPayload->setType($data['type']);
+        }
+
         $eventPayload->setBacktrace($stacktrace);
 
         // Resolve addons

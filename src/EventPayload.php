@@ -19,11 +19,11 @@ final class EventPayload implements \JsonSerializable
     private $title = '';
 
     /**
-     * Events error type
+     * Events error type (severity)
      *
-     * @var int
+     * @var ?Severity
      */
-    private $type = 0;
+    private $type;
 
     /**
      * Events description
@@ -31,13 +31,6 @@ final class EventPayload implements \JsonSerializable
      * @var string
      */
     private $description = '';
-
-    /**
-     * Events severity level
-     *
-     * @var int
-     */
-    private $level = 0;
 
     /**
      * Events stacktrace
@@ -113,9 +106,9 @@ final class EventPayload implements \JsonSerializable
     /**
      * Returns errors' type
      *
-     * @return int
+     * @return null|Severity
      */
-    public function getType(): int
+    public function getType(): ?Severity
     {
         return $this->type;
     }
@@ -125,9 +118,9 @@ final class EventPayload implements \JsonSerializable
      *
      * @return $this
      */
-    public function setType(int $type): self
+    public function setType(int $severity): self
     {
-        $this->type = $type;
+        $this->type = Severity::fromError($severity);
 
         return $this;
     }
@@ -150,28 +143,6 @@ final class EventPayload implements \JsonSerializable
     public function setDescription(string $description): self
     {
         $this->description = $description;
-
-        return $this;
-    }
-
-    /**
-     * Returns errors' severity level
-     *
-     * @return int
-     */
-    public function getLevel(): int
-    {
-        return $this->level;
-    }
-
-    /**
-     * @param int $level
-     *
-     * @return $this
-     */
-    public function setLevel(int $level): self
-    {
-        $this->level = $level;
 
         return $this;
     }
@@ -301,9 +272,8 @@ final class EventPayload implements \JsonSerializable
     {
         return [
             'title'       => $this->getTitle(),
-            'type'        => $this->getType(),
+            'type'        => $this->getType() ? $this->getType()->getValue() : '',
             'description' => $this->getDescription(),
-            'level'       => $this->getLevel(),
             'backtrace'   => $this->getBacktrace(),
             'addons'      => $this->getAddons(),
             'release'     => $this->getRelease(),
