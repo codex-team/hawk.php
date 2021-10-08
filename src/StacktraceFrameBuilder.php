@@ -305,6 +305,10 @@ final class StacktraceFrameBuilder
      */
     private function getAdjacentLines(string $filepath, int $line, int $margin = 5): array
     {
+        if (!file_exists($filepath) || !is_readable($filepath)) {
+            return [];
+        }
+
         /**
          * Get file as array of lines
          */
