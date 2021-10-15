@@ -3,7 +3,7 @@
     "description": "PHP errors Catcher module for Hawk.so",
     "keywords": ["hawk", "php", "error", "catcher", "monolog"],
     "type": "library",
-    "version": "2.1.6",
+    "version": "2.1.7",
     "license": "MIT",
     "require": {
         "ext-curl": "*",
