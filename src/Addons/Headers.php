@@ -42,6 +42,8 @@ class Headers implements AddonInterface
             }
         }
 
+        unset($result['Cookie']);
+
         return $result;
     }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Hawk;
 
+use Jean85\PrettyVersions;
+
 /**
  * Class EventPayload keeps events information about occurred event
  *
@@ -68,6 +70,13 @@ final class EventPayload implements \JsonSerializable
     private $context = [];
 
     /**
+     * Catchers version
+     *
+     * @var string
+     */
+    private $catcherVersion = '';
+
+    /**
      * EventPayload constructor.
      *
      * @param array $payload
@@ -79,6 +88,8 @@ final class EventPayload implements \JsonSerializable
                 $this->{$prop} = $value;
             }
         }
+
+        $this->catcherVersion = PrettyVersions::getVersion('codex-team/hawk.php')->getPrettyVersion();
     }
 
     /**
@@ -258,6 +269,14 @@ final class EventPayload implements \JsonSerializable
     }
 
     /**
+     * @return string
+     */
+    public function getCatcherVersion(): string
+    {
+        return $this->catcherVersion;
+    }
+
+    /**
      * @return array|mixed
      */
     public function jsonSerialize()
@@ -271,14 +290,15 @@ final class EventPayload implements \JsonSerializable
     private function toArray(): array
     {
         return [
-            'title'       => $this->getTitle(),
-            'type'        => $this->getType() ? $this->getType()->getValue() : '',
-            'description' => $this->getDescription(),
-            'backtrace'   => $this->getBacktrace(),
-            'addons'      => $this->getAddons(),
-            'release'     => $this->getRelease(),
-            'user'        => $this->getUser(),
-            'context'     => $this->getContext()
+            'title'             => $this->getTitle(),
+            'type'              => $this->getType() ? $this->getType()->getValue() : '',
+            'description'       => $this->getDescription(),
+            'backtrace'         => $this->getBacktrace(),
+            'addons'            => $this->getAddons(),
+            'release'           => $this->getRelease(),
+            'user'              => $this->getUser(),
+            'context'           => $this->getContext(),
+            'catcherVersion'    => $this->getCatcherVersion()
         ];
     }
 }

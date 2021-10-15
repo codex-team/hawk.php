@@ -32,7 +32,7 @@ final class Serializer
                 $arrayValues[] = $this->serializeValue($val);
             }
 
-            $value = implode(',', $arrayValues);
+            $value = json_encode($arrayValues);
         } elseif (is_bool($value)) {
             $value = $value === true ? 'true' : 'false';
         } elseif (is_null($value)) {

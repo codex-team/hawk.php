@@ -51,20 +51,20 @@ class SerializerTest extends TestCase
             [
                 [
                     'value' => [1, 2, 3, 4, 5],
-                    'expect' => '1,2,3,4,5'
+                    'expect' => '["1","2","3","4","5"]'
                 ]
             ],
             [
                 [
                     'value' => ['string', 1, true],
-                    'expect' => 'string,1,true'
+                    'expect' => '["string","1","true"]'
                 ]
             ],
             [
                 [
                     'value' => [function () {
                     }, \Closure::class],
-                    'expect' => 'Closure,Closure'
+                    'expect' => '["Closure","Closure"]'
                 ]
             ],
             [
@@ -76,14 +76,14 @@ class SerializerTest extends TestCase
             [
                 [
                     'value' => [1, new \stdClass(), new \Exception()],
-                    'expect' => '1,stdClass,Exception'
+                    'expect' => '["1","stdClass","Exception"]'
                 ]
             ],
             [
                 [
                     'value' => [[1, 2, 3], 'something', [function () {
                     }, [new \stdClass()]]],
-                    'expect' => '1,2,3,something,Closure,stdClass'
+                    'expect' => '["[\"1\",\"2\",\"3\"]","something","[\"Closure\",\"[\\\\\\"stdClass\\\\\\"]\"]"]'
                 ]
             ],
             [
@@ -95,7 +95,7 @@ class SerializerTest extends TestCase
             [
                 [
                     'value' => [new \ArrayIterator([1, 2, 3])],
-                    'expect' => 'ArrayIterator'
+                    'expect' => '["ArrayIterator"]'
                 ]
             ],
             [
