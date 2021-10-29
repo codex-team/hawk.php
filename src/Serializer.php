@@ -27,20 +27,38 @@ final class Serializer
                 $value = iterator_to_array($value);
             }
 
-            $arrayValues = [];
-            foreach ($value as $val) {
-                $arrayValues[] = $this->serializeValue($val);
-            }
+            if ($this->isAssoc($value)) {
+                $value = json_encode($value);
+            } else {
+                $arrayValues = [];
+                foreach ($value as $val) {
+                    $arrayValues[] = $this->serializeValue($val);
+                }
 
-            $value = json_encode($arrayValues);
+                $value = json_encode($arrayValues);
+            }
         } elseif (is_bool($value)) {
             $value = $value === true ? 'true' : 'false';
         } elseif (is_null($value)) {
             $value = 'null';
-        } else {
-            $value = (string) $value;
         }
 
         return $value;
+    }
+
+    /**
+     * Check array if it is associative
+     *
+     * @param array $array
+     *
+     * @return bool
+     */
+    private function isAssoc(array $array): bool
+    {
+        if ([] === $array) {
+            return false;
+        }
+
+        return array_keys($array) !== range(0, count($array) - 1);
     }
 }
