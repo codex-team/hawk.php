@@ -45,63 +45,69 @@ class SerializerTest extends TestCase
             [
                 [
                     'value' => 'val',
-                    'expect' => 'val'
+                    'expect' => '"val"'
                 ]
             ],
             [
                 [
                     'value' => [1, 2, 3, 4, 5],
-                    'expect' => '1,2,3,4,5'
+                    'expect' => '[1,2,3,4,5]'
                 ]
             ],
             [
                 [
                     'value' => ['string', 1, true],
-                    'expect' => 'string,1,true'
+                    'expect' => '["string",1,true]'
                 ]
             ],
             [
                 [
                     'value' => [function () {
                     }, \Closure::class],
-                    'expect' => 'Closure,Closure'
+                    'expect' => '["Closure","Closure"]'
                 ]
             ],
             [
                 [
                     'value' => new \stdClass(),
-                    'expect' => 'stdClass'
+                    'expect' => '"stdClass"'
                 ]
             ],
             [
                 [
                     'value' => [1, new \stdClass(), new \Exception()],
-                    'expect' => '1,stdClass,Exception'
+                    'expect' => '[1,"stdClass","Exception"]'
                 ]
             ],
             [
                 [
                     'value' => [[1, 2, 3], 'something', [function () {
                     }, [new \stdClass()]]],
-                    'expect' => '1,2,3,something,Closure,stdClass'
+                    'expect' => '[[1,2,3],"something",["Closure",["stdClass"]]]'
                 ]
             ],
             [
                 [
                     'value' => null,
-                    'expect' => 'null'
+                    'expect' => '"null"'
                 ]
             ],
             [
                 [
                     'value' => [new \ArrayIterator([1, 2, 3])],
-                    'expect' => 'ArrayIterator'
+                    'expect' => '["ArrayIterator"]'
                 ]
             ],
             [
                 [
                     'value' => new \CachingIterator(new \ArrayIterator()),
-                    'expect' => 'CachingIterator'
+                    'expect' => '"CachingIterator"'
+                ]
+            ],
+            [
+                [
+                    'value' => ['key1' => 'value1', 'key2' => 'value2'],
+                    'expect' => '{"key1":"value1","key2":"value2"}'
                 ]
             ]
         ];
