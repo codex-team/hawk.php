@@ -16,34 +16,58 @@ final class Serializer
      *
      * @param $value
      *
-     * @return mixed
+     * @return string
      */
-    public function serializeValue($value)
+    public function serializeValue($value): string
     {
-        if (is_object($value)) {
-            $value = get_class($value);
-        } elseif (is_iterable($value)) {
-            if (!is_array($value)) {
-                $value = iterator_to_array($value);
-            }
+        return json_encode($this->prepare($value));
+    }
 
-            if ($this->isAssoc($value)) {
-                $value = json_encode($value);
-            } else {
-                $arrayValues = [];
-                foreach ($value as $val) {
-                    $arrayValues[] = $this->serializeValue($val);
+    /**
+     * Prepares value for encoding
+     *
+     * @param $value
+     *
+     * @return array|mixed|string
+     */
+    private function prepare($value)
+    {
+        if (!is_object($value) && (is_array($value) || is_iterable($value))) {
+            $result = [];
+            foreach ($value as $key => $subValue) {
+                if (is_array($subValue) || is_iterable($subValue)) {
+                    $result[$key] = $this->prepare($subValue);
+                } else {
+                    $result[$key] = $this->transform($subValue);
                 }
-
-                $value = json_encode($arrayValues);
             }
-        } elseif (is_bool($value)) {
-            $value = $value === true ? 'true' : 'false';
-        } elseif (is_null($value)) {
-            $value = 'null';
-        }
 
-        return $value;
+            return $result;
+        } else {
+            return $this->transform($value);
+        }
+    }
+
+    /**
+     * Transforms value to string or returns itself
+     *
+     * @param $value
+     *
+     * @return mixed|string
+     */
+    private function transform($value)
+    {
+        if (is_null($value)) {
+            return 'null';
+        } elseif (is_callable($value)) {
+            return 'Closure';
+        } elseif (is_object($value)) {
+            return get_class($value);
+        } elseif (is_resource($value)) {
+            return 'Resource';
+        } else {
+            return $value;
+        }
     }
 
     /**
