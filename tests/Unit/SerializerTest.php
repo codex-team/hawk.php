@@ -22,6 +22,49 @@ class SerializerTest extends TestCase
         $this->assertEquals($testCase['expect'], $result);
     }
 
+    public function testSerializationWithMediumSizeArray(): void
+    {
+        $mediumArray = [];
+        $this->fillArray($mediumArray, 1, 20);
+
+        $fixture = new Serializer();
+        $result = $fixture->serializeValue($mediumArray);
+
+        $this->assertEquals('{"1":{"2":{"3":{"4":{"5":{"6":{"7":{"8":{"9":{"10":{"11":{"12":{"13":{"14":{"15":{"16":{"17":{"18":{"19":[]}}}}}}}}}}}}}}}}}}}', $result);
+    }
+
+    public function testSerializationWithLargeArray(): void
+    {
+        // MaxDepth is 1000
+        $largeArray = [];
+        $this->fillArray($largeArray);
+
+        $fixture = new Serializer();
+
+        // json_encode will return false and result is empty string
+        $result = $fixture->serializeValue($largeArray);
+
+        $this->assertEmpty($result);
+    }
+
+    /**
+     * Fills empty array with values:
+     *   [1 => [2 => [3 => ....]]]
+     *
+     * @param array $array
+     * @param int   $currentDepth
+     * @param int   $maxDepth
+     */
+    private function fillArray(array &$array, int $currentDepth = 0, int $maxDepth = 1000)
+    {
+        if ($currentDepth === $maxDepth) {
+            return;
+        }
+
+        $array[$currentDepth] = [];
+        $this->fillArray($array[$currentDepth], $currentDepth + 1, $maxDepth);
+    }
+
     /**
      * Returns list of test cases
      *
@@ -116,14 +159,6 @@ class SerializerTest extends TestCase
                     'expect' => ''
                 ]
             ],
-            [
-                [
-                    'value' => [
-                        'a' => ['b' => ['c' => ['d' => ['e' => ['f' => ['g' => ['h' => ['i' => ['j' => ['k' => ['l' => ['m' => ['n' => ['o' => ['p' => ['q' => ['r' => ['s' => ['t' => ['u' => ['v' => ['w' => ['z' => ['y' => ['z' => []]]]]]]]]]]]]]]]]]]]]]]]]]
-                    ],
-                    'expect' => '{"a":{"b":{"c":{"d":{"e":{"f":{"g":{"h":{"i":{"j":{"k":{"l":{"m":{"n":{"o":{"p":{"q":{"r":{"s":{"t":{"u":{"v":{"w":{"z":{"y":{"z":[]}}}}}}}}}}}}}}}}}}}}}}}}}}'
-                ]
-            ]
         ];
     }
 }
