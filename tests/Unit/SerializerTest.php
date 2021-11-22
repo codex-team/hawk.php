@@ -44,7 +44,7 @@ class SerializerTest extends TestCase
         // json_encode will return false and result is empty string
         $result = $fixture->serializeValue($largeArray);
 
-        $this->assertEquals("", trim($result));
+        $this->assertEquals('', trim($result));
     }
 
     /**
