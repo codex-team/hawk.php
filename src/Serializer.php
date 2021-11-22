@@ -20,7 +20,13 @@ final class Serializer
      */
     public function serializeValue($value): string
     {
-        return json_encode($this->prepare($value));
+        $encoded = json_encode($this->prepare($value));
+
+        if ($encoded === false) {
+            return '';
+        }
+
+        return $encoded;
     }
 
     /**
