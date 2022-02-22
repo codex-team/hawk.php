@@ -17,7 +17,7 @@ class StacktraceFrameBuilderTest extends TestCase
 
         $testCase = [
             'exception' => new \Exception(),
-            'stackSize' => 11
+            'stackSize' => 12
         ];
 
         $stacktrace = $fixture->buildStack($testCase['exception']);
