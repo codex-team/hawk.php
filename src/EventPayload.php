@@ -11,7 +11,7 @@ use Jean85\PrettyVersions;
  *
  * @package Hawk
  */
-final class EventPayload implements \JsonSerializable
+final class EventPayload
 {
     /**
      * Events title
