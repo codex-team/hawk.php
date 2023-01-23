@@ -2,7 +2,7 @@
 
 PHP errors Catcher for [Hawk.so](https://hawk.so).
 
-![](https://capella.pics/image/4c6e5fee-da7e-4bc5-a898-f19d12acb005)
+![](./images/4c6e5fee-da7e-4bc5-a898-f19d12acb005.jpg)
 
 ## Setup
 
@@ -91,7 +91,7 @@ Report a bug: https://github.com/codex-team/hawk.php/issues
 
 Composer Package: https://packagist.org/packages/codex-team/hawk.php
 
-CodeX Team: https://ifmo.su
+CodeX Team: https://codex.so
 
 ## License
 
