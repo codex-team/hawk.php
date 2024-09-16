@@ -1,15 +1,14 @@
 {
     "name": "codex-team/hawk.php",
     "description": "PHP errors Catcher module for Hawk.so",
-    "keywords": ["hawk", "php", "error", "catcher", "monolog"],
+    "keywords": ["hawk", "php", "error", "catcher"],
     "type": "library",
-    "version": "2.1.9",
+    "version": "2.2.0",
     "license": "MIT",
     "require": {
         "ext-curl": "*",
         "ext-json": "*",
-        "php": "^7.2",
-        "monolog/monolog": "^2.2",
+        "php": "^7.2 || ^8.0",
         "jean85/pretty-package-versions": "^1.5 || ^2.0"
     },
     "require-dev": {
