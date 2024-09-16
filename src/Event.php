@@ -9,7 +9,7 @@ namespace Hawk;
  *
  * @package Hawk
  */
-final class Event
+final class Event implements \JsonSerializable
 {
     /**
      * @var string
@@ -53,7 +53,7 @@ final class Event
     /**
      * @return array
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return [
             'token'        => $this->integrationToken,
