@@ -60,6 +60,10 @@ class EventPayloadBuilder
     {
         $eventPayload = new EventPayload();
 
+        if (!empty($data['title'])) {
+            $eventPayload->setTitle($data['title']);
+        }
+
         $eventPayload->setContext($data['context']);
         $eventPayload->setUser($data['user']);
 
