@@ -25,7 +25,7 @@ final class Catcher
     private static $instance;
 
     /**
-     * SDK handler: contains methods that catchs errors and exceptions
+     * SDK handler: contains methods that catch errors and exceptions
      *
      * @var Handler
      */
@@ -70,7 +70,7 @@ final class Catcher
      */
     public function setUser(array $user): self
     {
-        $this->handler->withUser($user);
+        $this->handler->setUser($user);
 
         return $this;
     }
@@ -82,7 +82,7 @@ final class Catcher
      */
     public function setContext(array $context): self
     {
-        $this->handler->withContext($context);
+        $this->handler->setContext($context);
 
         return $this;
     }
@@ -99,7 +99,7 @@ final class Catcher
      */
     public function sendMessage(string $message, array $context = []): void
     {
-        $this->handler->catchEvent([
+        $this->handler->sendEvent([
             'title'   => $message,
             'context' => $context
         ]);
@@ -109,6 +109,8 @@ final class Catcher
      * @param Throwable $throwable
      * @param array     $context
      *
+     * @throws Throwable
+     *
      * @example
      * \Hawk\Catcher::get()
      *  ->sendException($exception, [
@@ -117,7 +119,7 @@ final class Catcher
      */
     public function sendException(Throwable $throwable, array $context = [])
     {
-        $this->handler->catchException($throwable, $context);
+        $this->handler->handleException($throwable, $context);
     }
 
     /**
@@ -131,7 +133,7 @@ final class Catcher
      */
     public function sendEvent(array $payload): void
     {
-        $this->handler->catchEvent($payload);
+        $this->handler->sendEvent($payload);
     }
 
     /**
@@ -156,6 +158,9 @@ final class Catcher
         $transport = new CurlTransport($options->getUrl());
 
         $this->handler = new Handler($options, $transport, $builder);
-        $this->handler->enableHandlers();
+
+        $this->handler->registerErrorHandler();
+        $this->handler->registerExceptionHandler();
+        $this->handler->registerFatalHandler();
     }
 }
