@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Hawk;
 
-use Hawk\Transport\TransportInterface;
 use Hawk\Exception\SilencedErrorException;
+use Hawk\Transport\TransportInterface;
 
 class Handler
 {

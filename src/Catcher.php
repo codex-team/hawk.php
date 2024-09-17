@@ -25,7 +25,7 @@ final class Catcher
     private static $instance;
 
     /**
-     * SDK handler: contains methods that catchs errors and exceptions
+     * SDK handler: contains methods that catch errors and exceptions
      *
      * @var Handler
      */
@@ -107,7 +107,7 @@ final class Catcher
 
     /**
      * @param Throwable $throwable
-     * @param array $context
+     * @param array     $context
      *
      * @throws Throwable
      *
