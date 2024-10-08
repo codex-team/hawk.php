@@ -203,7 +203,9 @@ class Handler
         if ($event !== null) {
             $this->send($event);
 
-            return false !== ($this->previousErrorHandler)($level, $message, $file, $line);
+            if (null !== $this->previousErrorHandler) {
+                return false !== ($this->previousErrorHandler)($level, $message, $file, $line);
+            }
         }
 
         return false;
