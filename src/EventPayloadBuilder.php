@@ -71,7 +71,7 @@ class EventPayloadBuilder
             $exception = $data['exception'];
             $stacktrace = $this->stacktraceFrameBuilder->buildStack($exception);
 
-            $eventPayload->setTitle($exception->getMessage());
+            $eventPayload->setTitle($exception->getMessage() ?: get_class($exception));
         } else {
             $stacktrace = debug_backtrace();
         }
