@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Hawk;
 
-use Hawk\Addons\Headers;
 use Hawk\Addons\Environment;
+use Hawk\Addons\Headers;
 use Hawk\Transport\CurlTransport;
 use Throwable;
 
