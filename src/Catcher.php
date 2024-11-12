@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Hawk;
 
 use Hawk\Addons\Headers;
-use Hawk\Addons\Hostname;
+use Hawk\Addons\Environment;
 use Hawk\Transport\CurlTransport;
 use Throwable;
 
@@ -155,7 +155,7 @@ final class Catcher
          */
         $builder = new EventPayloadBuilder($stacktraceBuilder);
         $builder->registerAddon(new Headers());
-        $builder->registerAddon(new Hostname());
+        $builder->registerAddon(new Environment());
 
         $transport = new CurlTransport($options->getUrl());
 
