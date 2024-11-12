@@ -40,3 +40,4 @@ class Environment implements AddonInterface
         }
     }
 }
+
