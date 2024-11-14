@@ -18,7 +18,7 @@ class Environment implements AddonInterface
      */
     public function getName(): string
     {
-        return 'environment';
+        return 'Environment';
     }
 
     /**
