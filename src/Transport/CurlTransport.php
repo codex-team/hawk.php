@@ -21,13 +21,21 @@ class CurlTransport implements TransportInterface
     private $url;
 
     /**
+     * CURLOPT_TIMEOUT
+     *
+     * @var int
+     */
+    private $timeout;
+
+    /**
      * CurlTransport constructor.
      *
      * @param string $url
      */
-    public function __construct(string $url)
+    public function __construct(string $url, int $timeout)
     {
         $this->url = $url;
+        $this->timeout = $timeout;
     }
 
     /**
@@ -56,7 +64,7 @@ class CurlTransport implements TransportInterface
         curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($event, JSON_UNESCAPED_UNICODE));
         curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 10);
+        curl_setopt($curl, CURLOPT_TIMEOUT, $this->timeout);
         $response = curl_exec($curl);
         curl_close($curl);
 
