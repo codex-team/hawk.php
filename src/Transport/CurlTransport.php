@@ -60,7 +60,7 @@ class CurlTransport implements TransportInterface
 
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $this->url);
-        curl_setopt($curl, CURLOPT_POST, 1);
+        curl_setopt($curl, CURLOPT_POST, true);
         curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($event, JSON_UNESCAPED_UNICODE));
         curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
