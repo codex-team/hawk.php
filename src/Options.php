@@ -21,7 +21,8 @@ class Options
         'url'              => 'https://k1.hawk.so/',
         'release'          => '',
         'error_types'      => \E_ALL,
-        'beforeSend'       => null
+        'beforeSend'       => null,
+        'timeout'          => 10,
     ];
 
     /**
@@ -52,6 +53,11 @@ class Options
     public function getUrl(): string
     {
         return $this->options['url'];
+    }
+
+    public function getTimeout(): int
+    {
+        return $this->options['timeout'];
     }
 
     /**

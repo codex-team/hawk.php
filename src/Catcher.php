@@ -157,7 +157,7 @@ final class Catcher
         $builder->registerAddon(new Headers());
         $builder->registerAddon(new Environment());
 
-        $transport = new CurlTransport($options->getUrl());
+        $transport = new CurlTransport($options->getUrl(), $options->getTimeout());
 
         $this->handler = new Handler($options, $transport, $builder);
 
