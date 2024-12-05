@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Hawk\Tests\Unit;
 
 use Hawk\Options;
+use Hawk\Transport;
 use PHPUnit\Framework\TestCase;
 
 class OptionsTest extends TestCase
@@ -17,7 +18,10 @@ class OptionsTest extends TestCase
         $this->assertEmpty($options->getIntegrationToken());
         $this->assertEmpty($options->getRelease());
         $this->assertEquals('https://k1.hawk.so/', $options->getUrl());
+        $this->assertEquals(2, $options->getTimeout());
+        $this->assertEquals('curl', $options->getTransport());
         $this->assertEquals(error_reporting(), $options->getErrorTypes());
+        $this->assertArrayHasKey($options->getTransport(), Transport::getTransports());
     }
 
     public function testCustomOptions(): void
@@ -27,8 +31,9 @@ class OptionsTest extends TestCase
             'integrationToken' => 'myToken',
             'release' => '123',
             'error_types' => 11,
-            'beforeSend' => function () {
-            }
+            'beforeSend' => function () {},
+            'timeout' => 60,
+            'transport' => 'guzzle',
         ];
 
         $options = new Options($config);
@@ -37,7 +42,9 @@ class OptionsTest extends TestCase
             'integrationToken' => $options->getIntegrationToken(),
             'release' => $options->getRelease(),
             'error_types' => $options->getErrorTypes(),
-            'beforeSend' => $options->getBeforeSend()
+            'beforeSend' => $options->getBeforeSend(),
+            'timeout' => $options->getTimeout(),
+            'transport' => $options->getTransport(),
         ]);
     }
 }

@@ -45,6 +45,11 @@ class Options
     private $timeout = 2;
 
     /**
+     * @var string
+     */
+    private $transport = 'curl';
+
+    /**
      * Map of accepted option keys to class properties.
      */
     private const OPTION_KEYS = [
@@ -59,6 +64,7 @@ class Options
         'beforeSend' => 'beforeSend',
         'before_send' => 'beforeSend',
         'timeout' => 'timeout',
+        'transport' => 'transport',
     ];
 
     /**
@@ -91,6 +97,7 @@ class Options
             case 'integrationToken':
             case 'release':
             case 'url':
+            case 'transport':
                 if (!is_string($value)) {
                     throw new \InvalidArgumentException("Option '$key' must be a string.");
                 }
@@ -168,5 +175,10 @@ class Options
     public function getTimeout(): int
     {
         return $this->timeout;
+    }
+
+    public function getTransport(): string
+    {
+        return $this->transport;
     }
 }

@@ -5,34 +5,46 @@ declare(strict_types=1);
 namespace Hawk\Transport;
 
 use Hawk\Event;
+use Hawk\Options;
+use Hawk\Transport;
 
 /**
  * Class GuzzleTransport
  *
  * @package Hawk\Transport
  */
-class GuzzleTransport implements TransportInterface
+class GuzzleTransport extends Transport
 {
-    private $url;
+    /**
+     * @var \GuzzleHttp\Client
+     */
+    private $client;
 
-    public function __construct(string $url)
+    /**
+     * GuzzleTransport constructor.
+     *
+     * @param Options $options
+     */
+    public function __construct(Options $options)
     {
-        $this->url = $url;
+        parent::__construct($options);
+
+        $this->client = new \GuzzleHttp\Client();
     }
 
     /**
      * @inheritDoc
      */
-    public function getUrl(): string
+    protected function _send(Event $event): string
     {
-        return $this->url;
-    }
+        $response = $this->client->post($this->getUrl(), [
+            'headers' => [
+                'Content-Type' => 'application/json',
+            ],
+            'body' => json_encode($event, JSON_UNESCAPED_UNICODE),
+            'timeout' => $this->getTimeout(),
+        ]);
 
-    /**
-     * @inheritDoc
-     */
-    public function send(Event $event): void
-    {
-        // TODO: Implement send() method.
+        return $response->getBody()->getContents();
     }
 }
