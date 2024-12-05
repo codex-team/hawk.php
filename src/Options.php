@@ -83,7 +83,7 @@ class Options
      * Set a class property based on the normalized option key.
      *
      * @param string $key
-     * @param mixed $value
+     * @param mixed  $value
      */
     private function setOption(string $key, $value): void
     {
@@ -95,6 +95,7 @@ class Options
                     throw new \InvalidArgumentException("Option '$key' must be a string.");
                 }
                 $this->$key = $value;
+
                 break;
 
             case 'errorTypes':
@@ -102,6 +103,7 @@ class Options
                     throw new \InvalidArgumentException("Option 'errorTypes' must be an integer or null.");
                 }
                 $this->errorTypes = $value;
+
                 break;
 
             case 'captureSilencedErrors':
@@ -109,6 +111,7 @@ class Options
                     throw new \InvalidArgumentException("Option 'captureSilencedErrors' must be a boolean.");
                 }
                 $this->captureSilencedErrors = $value;
+
                 break;
 
             case 'beforeSend':
@@ -116,6 +119,7 @@ class Options
                     throw new \InvalidArgumentException("Option 'beforeSend' must be callable or null.");
                 }
                 $this->beforeSend = $value;
+
                 break;
 
             case 'timeout':
@@ -123,6 +127,7 @@ class Options
                     throw new \InvalidArgumentException("Option 'timeout' must be an integer.");
                 }
                 $this->timeout = $value;
+
                 break;
 
             default:
