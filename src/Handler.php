@@ -335,6 +335,9 @@ class Handler
         );
     }
 
+    /**
+     * Determines if the error should be handled, considering its level and if it was silenced using (@).
+     */
     private function shouldHandleError(int $level, bool $silenced): bool
     {
         if ($silenced) {
