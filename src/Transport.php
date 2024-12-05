@@ -13,7 +13,7 @@ use Hawk\Transport\GuzzleTransport;
  *
  * @package Hawk\Transport
  */
-class Transport
+abstract class Transport
 {
     /**
      * @var string
@@ -25,6 +25,13 @@ class Transport
      */
     protected $timeout;
 
+    /**
+     * @param Options $options
+     *
+     * @return static
+     *
+     * @throws TransportException
+     */
     public static function init(Options $options)
     {
         $transports = self::getTransports();
@@ -36,6 +43,9 @@ class Transport
         return new $transports[$options->getTransport()]($options);
     }
 
+    /**
+     * @return string[]
+     */
     public static function getTransports(): array
     {
         return [
@@ -44,6 +54,9 @@ class Transport
         ];
     }
 
+    /**
+     * @param Options $options
+     */
     public function __construct(Options $options)
     {
         $this->url = $options->getUrl();
@@ -60,6 +73,11 @@ class Transport
         return $this->url;
     }
 
+    /**
+     * Returns total timeout of the request in seconds
+     *
+     * @return int
+     */
     public function getTimeout(): int
     {
         return $this->timeout;
@@ -85,8 +103,6 @@ class Transport
         return $data;
     }
 
-    protected function _send(Event $event): string
-    {
-        throw new TransportException('Not implemented transport method _send()');
-    }
+
+    abstract protected function _send(Event $event): string;
 }
