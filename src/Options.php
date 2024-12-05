@@ -42,7 +42,7 @@ class Options
     /**
      * @var int
      */
-    private $timeout = 10;
+    private $timeout = 2;
 
     /**
      * Map of accepted option keys to class properties.
