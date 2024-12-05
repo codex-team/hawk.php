@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Hawk;
 
 use Hawk\Exception\SilencedErrorException;
-use Hawk\Transport\TransportInterface;
 
 class Handler
 {
@@ -19,7 +18,7 @@ class Handler
     /**
      * Transport layer for sending events to the remote server.
      *
-     * @var TransportInterface
+     * @var Transport
      */
     private $transport;
 
@@ -86,7 +85,7 @@ class Handler
 
     public function __construct(
         Options $options,
-        TransportInterface $transport,
+        Transport $transport,
         EventPayloadBuilder $eventPayloadBuilder
     ) {
         $this->options = $options;
