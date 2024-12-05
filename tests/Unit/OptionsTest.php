@@ -17,7 +17,7 @@ class OptionsTest extends TestCase
         $this->assertEmpty($options->getIntegrationToken());
         $this->assertEmpty($options->getRelease());
         $this->assertEquals('https://k1.hawk.so/', $options->getUrl());
-        $this->assertEquals(\E_ALL, $options->getErrorTypes());
+        $this->assertEquals(error_reporting(), $options->getErrorTypes());
     }
 
     public function testCustomOptions(): void

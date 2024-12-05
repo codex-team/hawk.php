@@ -200,12 +200,12 @@ class Handler
         $eventPayload = $this->eventPayloadBuilder->create($data);
         $event = $this->buildEvent($eventPayload);
 
-        if ($event !== null) {
+        if ($event !== null && $this->shouldHandleError($level, $isSilencedError)) {
             $this->send($event);
+        }
 
-            if (null !== $this->previousErrorHandler) {
-                return false !== ($this->previousErrorHandler)($level, $message, $file, $line);
-            }
+        if (null !== $this->previousErrorHandler) {
+            return false !== ($this->previousErrorHandler)($level, $message, $file, $line);
         }
 
         return false;
@@ -333,6 +333,18 @@ class Handler
             $this->options->getIntegrationToken(),
             $eventPayload
         );
+    }
+
+    /**
+     * Determines if the error should be handled, considering its level and if it was silenced using (@).
+     */
+    private function shouldHandleError(int $level, bool $silenced): bool
+    {
+        if ($silenced) {
+            return $this->options->shouldCaptureSilencedErrors();
+        }
+
+        return ($this->options->getErrorTypes() & $level) !== 0;
     }
 
     /**
