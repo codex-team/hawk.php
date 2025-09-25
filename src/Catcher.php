@@ -6,7 +6,6 @@ namespace Hawk;
 
 use Hawk\Addons\Environment;
 use Hawk\Addons\Headers;
-use Hawk\Transport\CurlTransport;
 use Throwable;
 
 /**
@@ -157,7 +156,7 @@ final class Catcher
         $builder->registerAddon(new Headers());
         $builder->registerAddon(new Environment());
 
-        $transport = new CurlTransport($options->getUrl(), $options->getTimeout());
+        $transport = Transport::init($options);
 
         $this->handler = new Handler($options, $transport, $builder);
 
