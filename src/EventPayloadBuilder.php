@@ -178,9 +178,7 @@ class EventPayloadBuilder
                 'function'      => $functionName,
                 // Keep arguments only if it already looks like desired string[]; otherwise omit
                 // Limit argument processing to first 10 items to avoid performance issues
-                'arguments'     => (isset($frame['arguments']) && is_array($frame['arguments'])) 
-                    ? array_values(array_map('strval', array_slice($frame['arguments'], 0, 10)))
-                    : [],
+                'arguments'     => (isset($frame['arguments']) && is_array($frame['arguments'])) ? array_values(array_map('strval', array_slice($frame['arguments'], 0, 10))) : [],
                 'additionalData'=> $additional,
             ]);
         }
