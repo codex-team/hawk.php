@@ -131,18 +131,18 @@ class EventPayloadBuilder
                 continue;
             }
 
-            $file = isset($frame['file']) ? (string)$frame['file'] : '';
-            $line = isset($frame['line']) ? (int)$frame['line'] : 0;
+            $file = isset($frame['file']) ? (string) $frame['file'] : '';
+            $line = isset($frame['line']) ? (int) $frame['line'] : 0;
             $functionName = null;
 
             if (isset($frame['function'])) {
                 if (!empty($frame['class']) && !empty($frame['type'])) {
-                    $functionName = (string)$frame['class'] . (string)$frame['type'] . (string)$frame['function'];
+                    $functionName = (string) $frame['class'] . (string) $frame['type'] . (string) $frame['function'];
                 } else {
-                    $functionName = (string)$frame['function'];
+                    $functionName = (string) $frame['function'];
                 }
             } elseif (isset($frame['functionName'])) {
-                $functionName = (string)$frame['functionName'];
+                $functionName = (string) $frame['functionName'];
             }
 
             $allowedKeys = ['file', 'line', 'column', 'sourceCode', 'function', 'arguments', 'additionalData'];
@@ -224,6 +224,7 @@ class EventPayloadBuilder
             foreach ($value as $k => $v) {
                 $result[$k] = $this->transformForJson($v);
             }
+
             return $result;
         }
 
