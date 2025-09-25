@@ -243,7 +243,7 @@ class EventPayloadBuilder
         }
 
         if (is_null($value)) {
-            return 'null';
+            return null;
         }
 
         if (is_callable($value)) {
