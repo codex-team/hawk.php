@@ -28,6 +28,19 @@ class EventPayloadBuilder
     private $stacktraceFrameBuilder;
 
     /**
+     * Allowed keys for stacktrace frames
+     */
+    private const ALLOWED_KEYS = [
+        'file',
+        'line',
+        'column',
+        'sourceCode',
+        'function',
+        'arguments',
+        'additionalData',
+    ];
+
+    /**
      * EventPayloadFactory constructor.
      */
     public function __construct(StacktraceFrameBuilder $stacktraceFrameBuilder)
@@ -145,11 +158,9 @@ class EventPayloadBuilder
                 $functionName = (string) $frame['functionName'];
             }
 
-            $allowedKeys = ['file', 'line', 'column', 'sourceCode', 'function', 'arguments', 'additionalData'];
-
             $additional = [];
             foreach ($frame as $key => $value) {
-                if (!in_array($key, $allowedKeys, true)) {
+                if (!in_array($key, self::ALLOWED_KEYS, true)) {
                     // Drop heavy/unserializable objects from 'object' field; store class name instead
                     if ($key === 'object') {
                         $value = is_object($value) ? get_class($value) : $value;
