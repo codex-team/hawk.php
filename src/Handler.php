@@ -323,9 +323,14 @@ class Handler
         $beforeSendCallback = $this->options->getBeforeSend();
 
         if ($beforeSendCallback) {
-            $eventPayload = $beforeSendCallback($eventPayload);
-            if ($eventPayload === null) {
+            $beforeSendResult = $beforeSendCallback($eventPayload);
+            if ($beforeSendResult === null) {
                 return null;
+            }
+            if ($beforeSendResult instanceof EventPayload) {
+                $eventPayload = $beforeSendResult;
+            } else {
+                error_log('[Hawk] beforeSend must return EventPayload or null. Received: ' . gettype($beforeSendResult));
             }
         }
 
