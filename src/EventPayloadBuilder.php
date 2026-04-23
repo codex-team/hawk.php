@@ -41,6 +41,11 @@ class EventPayloadBuilder
     ];
 
     /**
+     * {@see transformForJson} max nesting — protects against $GLOBALS self-reference and similar cycles.
+     */
+    private const TRANSFORM_JSON_MAX_DEPTH = 32;
+
+    /**
      * EventPayloadFactory constructor.
      */
     public function __construct(StacktraceFrameBuilder $stacktraceFrameBuilder)
@@ -158,15 +163,21 @@ class EventPayloadBuilder
                 $functionName = (string) $frame['functionName'];
             }
 
+            $arguments = $this->buildArgumentsList($frame);
+
             $additional = [];
             foreach ($frame as $key => $value) {
                 if (!in_array($key, self::ALLOWED_KEYS, true)) {
+                    // Mapped to `arguments` via StacktraceFrameBuilder / string list; do not dump raw `args` here
+                    if ($key === 'args') {
+                        continue;
+                    }
                     // Drop heavy/unserializable objects from 'object' field; store class name instead
                     if ($key === 'object') {
                         $value = is_object($value) ? get_class($value) : $value;
                     }
 
-                    $additional[$key] = $this->transformForJson($value);
+                    $additional[$key] = $this->transformForJson($value, 0);
                 }
             }
 
@@ -176,9 +187,7 @@ class EventPayloadBuilder
                 'column'        => null,
                 'sourceCode'    => isset($frame['sourceCode']) && is_array($frame['sourceCode']) ? $frame['sourceCode'] : null,
                 'function'      => $functionName,
-                // Keep arguments only if it already looks like desired string[]; otherwise omit
-                // Limit argument processing to first 10 items to avoid performance issues
-                'arguments'     => (isset($frame['arguments']) && is_array($frame['arguments'])) ? array_values(array_map('strval', array_slice($frame['arguments'], 0, 10))) : [],
+                'arguments'     => $arguments,
                 'additionalData'=> $additional,
             ]);
         }
@@ -223,18 +232,65 @@ class EventPayloadBuilder
     }
 
     /**
+     * Build Hawk `arguments` (string[]) from a frame: prefers ready `arguments`, else formats raw `args`.
+     *
+     * @param array $frame
+     *
+     * @return array
+     */
+    private function buildArgumentsList(array $frame): array
+    {
+        $max = StacktraceFrameBuilder::MAX_FRAME_ARGUMENTS;
+        $maxBytes = StacktraceFrameBuilder::MAX_ARGUMENT_LINE_BYTES;
+
+        if (isset($frame['arguments']) && is_array($frame['arguments'])) {
+            $out = [];
+            foreach (array_slice($frame['arguments'], 0, $max) as $line) {
+                $out[] = $this->truncateArgumentLineString((string) $line, $maxBytes);
+            }
+
+            return $out;
+        }
+
+        if (!empty($frame['args']) && is_array($frame['args'])) {
+            $out = [];
+            foreach (array_slice($this->stacktraceFrameBuilder->getFormattedArguments($frame), 0, $max) as $line) {
+                $out[] = $this->truncateArgumentLineString((string) $line, $maxBytes);
+            }
+
+            return $out;
+        }
+
+        return [];
+    }
+
+    private function truncateArgumentLineString(string $line, int $maxBytes): string
+    {
+        if (strlen($line) <= $maxBytes) {
+            return $line;
+        }
+
+        return substr($line, 0, $maxBytes - 3) . '...';
+    }
+
+    /**
      * Transform values to JSON-serializable representation
      *
      * @param mixed $value
+     * @param int   $depth
      *
      * @return mixed
      */
-    private function transformForJson($value)
+    private function transformForJson($value, int $depth = 0)
     {
+        if ($depth > self::TRANSFORM_JSON_MAX_DEPTH) {
+            return '[max depth]';
+        }
+
         if (is_array($value)) {
             $result = [];
             foreach ($value as $k => $v) {
-                $result[$k] = $this->transformForJson($v);
+                $result[$k] = $this->transformForJson($v, $depth + 1);
             }
 
             return $result;

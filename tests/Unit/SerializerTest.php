@@ -19,7 +19,17 @@ class SerializerTest extends TestCase
         $fixture = new Serializer();
         $result = $fixture->serializeValue($testCase['value']);
 
-        $this->assertEquals($testCase['expect'], $result);
+        if ($testCase['expect'] === '') {
+            $this->assertSame('', $result);
+
+            return;
+        }
+
+        // Output uses JSON_PRETTY_PRINT; compare decoded structure (and scalars) for stability
+        $this->assertEquals(
+            json_decode($testCase['expect'], true, 512, JSON_THROW_ON_ERROR),
+            json_decode($result, true, 512, JSON_THROW_ON_ERROR)
+        );
     }
 
     public function testSerializationWithMediumSizeArray(): void
@@ -30,21 +40,34 @@ class SerializerTest extends TestCase
         $fixture = new Serializer();
         $result = $fixture->serializeValue($mediumArray);
 
-        $this->assertEquals('{"1":{"2":{"3":{"4":{"5":{"6":{"7":{"8":{"9":{"10":{"11":{"12":{"13":{"14":{"15":{"16":{"17":{"18":{"19":[]}}}}}}}}}}}}}}}}}}}', $result);
+        $this->assertEquals(
+            json_decode('{"1":{"2":{"3":{"4":{"5":{"6":{"7":{"8":{"9":{"10":{"11":{"12":{"13":{"14":{"15":{"16":{"17":{"18":{"19":[]}}}}}}}}}}}}}}}}}}}', true, 512, JSON_THROW_ON_ERROR),
+            json_decode($result, true, 512, JSON_THROW_ON_ERROR)
+        );
     }
 
     public function testSerializationWithLargeArray(): void
     {
-        // MaxDepth is 1000
         $largeArray = [];
         $this->fillArray($largeArray);
 
         $fixture = new Serializer();
-
-        // json_encode will return false and result is empty string
         $result = $fixture->serializeValue($largeArray);
 
-        $this->assertEquals('', trim($result));
+        // Very deep trees are truncated instead of making json_encode fail
+        $this->assertStringContainsString('[max depth]', $result);
+        $this->assertIsArray(json_decode($result, true));
+    }
+
+    public function testLongStringValuesGetSoftBreakPointsForDisplay(): void
+    {
+        $long = str_repeat('a', 200);
+        $fixture = new Serializer();
+        $result = $fixture->serializeValue($long);
+        $this->assertStringContainsString("\u{200B}", $result);
+        $decoded = json_decode($result, false, 512, JSON_THROW_ON_ERROR);
+        $this->assertIsString($decoded);
+        $this->assertSame($long, str_replace("\u{200B}", '', $decoded));
     }
 
     /**

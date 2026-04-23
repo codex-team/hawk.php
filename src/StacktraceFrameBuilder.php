@@ -15,6 +15,16 @@ use Throwable;
 final class StacktraceFrameBuilder
 {
     /**
+     * Max function arguments to include per frame (payload size, CPU, Hawk limits).
+     */
+    public const MAX_FRAME_ARGUMENTS = 5;
+
+    /**
+     * Max length of one serialized "name = value" line (bytes; avoids huge JSON in events).
+     */
+    public const MAX_ARGUMENT_LINE_BYTES = 2048;
+
+    /**
      * @var Serializer
      */
     private $serializer;
@@ -184,6 +194,19 @@ final class StacktraceFrameBuilder
     }
 
     /**
+     * Format `args` from a raw debug_backtrace() frame to Hawk `arguments` (list of "name = value" strings).
+     * Public so {@see EventPayloadBuilder} can map `args` without duplicating logic.
+     *
+     * @param array $frame
+     *
+     * @return array
+     */
+    public function getFormattedArguments(array $frame): array
+    {
+        return $this->getArgs($frame);
+    }
+
+    /**
      * Get function arguments for a frame
      *
      * @param array $frame - backtrace frame
@@ -216,6 +239,9 @@ final class StacktraceFrameBuilder
          */
         if (!$reflection) {
             foreach ($frame['args'] as $index => $value) {
+                if ($index >= self::MAX_FRAME_ARGUMENTS) {
+                    break;
+                }
                 $arguments['arg' . $index] = $value;
             }
         } else {
@@ -230,6 +256,10 @@ final class StacktraceFrameBuilder
             foreach ($reflectionParams as $reflectionParam) {
                 $paramName = $reflectionParam->getName();
                 $paramPosition = $reflectionParam->getPosition();
+
+                if ($paramPosition >= self::MAX_FRAME_ARGUMENTS) {
+                    break;
+                }
 
                 if (isset($frame['args'][$paramPosition])) {
                     $arguments[$paramName] = $frame['args'][$paramPosition];
@@ -246,15 +276,23 @@ final class StacktraceFrameBuilder
             $value = $this->serializer->serializeValue($value);
 
             try {
-                $newArguments[] = sprintf('%s = %s', $name, $value);
+                $line = sprintf('%s = %s', $name, $value);
+                $newArguments[] = $this->truncateArgumentLine($line);
             } catch (\Exception $e) {
                 // Ignore unknown types
             }
         }
 
-        $arguments = $newArguments;
+        return $newArguments;
+    }
 
-        return $arguments;
+    private function truncateArgumentLine(string $line): string
+    {
+        if (strlen($line) <= self::MAX_ARGUMENT_LINE_BYTES) {
+            return $line;
+        }
+
+        return substr($line, 0, self::MAX_ARGUMENT_LINE_BYTES - 3) . '...';
     }
 
     /**
