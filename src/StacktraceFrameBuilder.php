@@ -17,7 +17,7 @@ final class StacktraceFrameBuilder
     /**
      * Max function arguments to include per frame (payload size, CPU, Hawk limits).
      */
-    public const MAX_FRAME_ARGUMENTS = 5;
+    public const MAX_FRAME_ARGUMENTS = 20;
 
     /**
      * @var Serializer
