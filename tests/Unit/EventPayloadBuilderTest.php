@@ -53,7 +53,7 @@ class EventPayloadBuilderTest extends TestCase
         $frame = [
             'file'     => '/x.php',
             'line'     => 1,
-            'function' => 'not_registered_function_'.uniqid(),
+            'function' => 'not_registered_function_' . uniqid(),
             'args'     => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         ];
 
