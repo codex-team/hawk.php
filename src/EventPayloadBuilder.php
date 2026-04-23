@@ -232,7 +232,8 @@ class EventPayloadBuilder
     }
 
     /**
-     * Build Hawk `arguments` (string[]) from a frame: prefers ready `arguments`, else formats raw `args`.
+     * Build Hawk `arguments`: string list like "name = serializedValue" (from raw `args` via Serializer).
+     * Only the number of lines is limited ({@see StacktraceFrameBuilder::MAX_FRAME_ARGUMENTS}); lines are not truncated.
      *
      * @param array $frame
      *
@@ -241,12 +242,11 @@ class EventPayloadBuilder
     private function buildArgumentsList(array $frame): array
     {
         $max = StacktraceFrameBuilder::MAX_FRAME_ARGUMENTS;
-        $maxBytes = StacktraceFrameBuilder::MAX_ARGUMENT_LINE_BYTES;
 
         if (isset($frame['arguments']) && is_array($frame['arguments'])) {
             $out = [];
             foreach (array_slice($frame['arguments'], 0, $max) as $line) {
-                $out[] = $this->truncateArgumentLineString((string) $line, $maxBytes);
+                $out[] = (string) $line;
             }
 
             return $out;
@@ -255,22 +255,13 @@ class EventPayloadBuilder
         if (!empty($frame['args']) && is_array($frame['args'])) {
             $out = [];
             foreach (array_slice($this->stacktraceFrameBuilder->getFormattedArguments($frame), 0, $max) as $line) {
-                $out[] = $this->truncateArgumentLineString((string) $line, $maxBytes);
+                $out[] = (string) $line;
             }
 
             return $out;
         }
 
         return [];
-    }
-
-    private function truncateArgumentLineString(string $line, int $maxBytes): string
-    {
-        if (strlen($line) <= $maxBytes) {
-            return $line;
-        }
-
-        return substr($line, 0, $maxBytes - 3) . '...';
     }
 
     /**

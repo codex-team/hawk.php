@@ -59,17 +59,6 @@ class SerializerTest extends TestCase
         $this->assertIsArray(json_decode($result, true));
     }
 
-    public function testLongStringValuesGetSoftBreakPointsForDisplay(): void
-    {
-        $long = str_repeat('a', 200);
-        $fixture = new Serializer();
-        $result = $fixture->serializeValue($long);
-        $this->assertStringContainsString("\u{200B}", $result);
-        $decoded = json_decode($result, false, 512, JSON_THROW_ON_ERROR);
-        $this->assertIsString($decoded);
-        $this->assertSame($long, str_replace("\u{200B}", '', $decoded));
-    }
-
     /**
      * Fills empty array with values:
      *   [1 => [2 => [3 => ....]]]

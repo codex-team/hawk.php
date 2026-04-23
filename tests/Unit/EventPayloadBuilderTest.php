@@ -49,23 +49,24 @@ class EventPayloadBuilderTest extends TestCase
     public function testNormalizeBacktraceLimitsArgumentCount(): void
     {
         [$builder, $normalize] = $this->builderWithNormalizeBacktrace();
+        $max = StacktraceFrameBuilder::MAX_FRAME_ARGUMENTS;
 
         $frame = [
             'file'     => '/x.php',
             'line'     => 1,
             'function' => 'not_registered_function_' . uniqid(),
-            'args'     => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            'args'     => array_values(range(1, $max + 5)),
         ];
 
         $stack = $normalize->invoke($builder, [$frame]);
 
-        $this->assertCount(StacktraceFrameBuilder::MAX_FRAME_ARGUMENTS, $stack[0]['arguments']);
+        $this->assertCount($max, $stack[0]['arguments']);
     }
 
-    public function testNormalizeBacktraceTruncatesPrebuiltArgumentLines(): void
+    public function testNormalizeBacktracePreservesPrebuiltArgumentLinesWithoutTrimming(): void
     {
         [$builder, $normalize] = $this->builderWithNormalizeBacktrace();
-        $long = str_repeat('Z', StacktraceFrameBuilder::MAX_ARGUMENT_LINE_BYTES + 100);
+        $long = str_repeat('Z', 5000);
 
         $frame = [
             'file'      => '/x.php',
@@ -77,8 +78,7 @@ class EventPayloadBuilderTest extends TestCase
         $stack = $normalize->invoke($builder, [$frame]);
         $line  = $stack[0]['arguments'][0] ?? '';
 
-        $this->assertLessThanOrEqual(StacktraceFrameBuilder::MAX_ARGUMENT_LINE_BYTES, strlen($line));
-        $this->assertStringEndsWith('...', $line);
+        $this->assertSame($long, $line);
     }
 
     public function testNormalizeBacktraceFinishesWithGlobalsLikeNestingInAdditionalData(): void

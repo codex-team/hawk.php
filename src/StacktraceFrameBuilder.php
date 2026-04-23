@@ -20,11 +20,6 @@ final class StacktraceFrameBuilder
     public const MAX_FRAME_ARGUMENTS = 5;
 
     /**
-     * Max length of one serialized "name = value" line (bytes; avoids huge JSON in events).
-     */
-    public const MAX_ARGUMENT_LINE_BYTES = 2048;
-
-    /**
      * @var Serializer
      */
     private $serializer;
@@ -277,22 +272,13 @@ final class StacktraceFrameBuilder
 
             try {
                 $line = sprintf('%s = %s', $name, $value);
-                $newArguments[] = $this->truncateArgumentLine($line);
+                $newArguments[] = $line;
             } catch (\Exception $e) {
                 // Ignore unknown types
             }
         }
 
         return $newArguments;
-    }
-
-    private function truncateArgumentLine(string $line): string
-    {
-        if (strlen($line) <= self::MAX_ARGUMENT_LINE_BYTES) {
-            return $line;
-        }
-
-        return substr($line, 0, self::MAX_ARGUMENT_LINE_BYTES - 3) . '...';
     }
 
     /**

@@ -12,12 +12,6 @@ namespace Hawk;
 final class Serializer
 {
     /**
-     * Long scalar strings: insert U+200B every N chars so UIs can wrap (like soft word-break),
-     * without breaking JSON validity. Does not alter tokens like short keys.
-     */
-    private const SOFT_BREAK_EVERY_CHARS = 72;
-
-    /**
      * Process any value and makes it safe (in appropriate format) to send to hawk
      *
      * @param $value
@@ -88,34 +82,9 @@ final class Serializer
             return get_class($value);
         } elseif (is_resource($value)) {
             return 'Resource';
-        } elseif (is_string($value)) {
-            return $this->insertSoftBreaksInString($value);
         } else {
             return $value;
         }
-    }
-
-    /**
-     * Insert zero-width spaces for long strings so Hawk (or any monospace view) can wrap
-     * without CSS word-break; JSON remains valid after json_encode.
-     */
-    private function insertSoftBreaksInString(string $value): string
-    {
-        $len = strlen($value);
-        if ($len <= self::SOFT_BREAK_EVERY_CHARS) {
-            return $value;
-        }
-
-        $chunk = self::SOFT_BREAK_EVERY_CHARS;
-        $zwsp = "\u{200B}";
-
-        if (function_exists('mb_str_split')) {
-            $parts = mb_str_split($value, $chunk, 'UTF-8');
-
-            return implode($zwsp, $parts);
-        }
-
-        return implode($zwsp, str_split($value, $chunk));
     }
 
     /**
