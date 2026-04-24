@@ -63,10 +63,10 @@ class EventPayloadBuilderTest extends TestCase
         $this->assertCount($max, $stack[0]['arguments']);
     }
 
-    public function testNormalizeBacktracePreservesPrebuiltArgumentLinesWithoutTrimming(): void
+    public function testNormalizeBacktraceTruncatesPrebuiltArgumentLines(): void
     {
         [$builder, $normalize] = $this->builderWithNormalizeBacktrace();
-        $long = str_repeat('Z', 5000);
+        $long = str_repeat('Z', StacktraceFrameBuilder::MAX_ARGUMENT_LINE_BYTES + 100);
 
         $frame = [
             'file'      => '/x.php',
@@ -78,7 +78,8 @@ class EventPayloadBuilderTest extends TestCase
         $stack = $normalize->invoke($builder, [$frame]);
         $line  = $stack[0]['arguments'][0] ?? '';
 
-        $this->assertSame($long, $line);
+        $this->assertLessThanOrEqual(StacktraceFrameBuilder::MAX_ARGUMENT_LINE_BYTES, strlen($line));
+        $this->assertStringEndsWith('...', $line);
     }
 
     public function testNormalizeBacktraceFinishesWithGlobalsLikeNestingInAdditionalData(): void
