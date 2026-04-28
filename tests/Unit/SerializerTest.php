@@ -59,6 +59,28 @@ class SerializerTest extends TestCase
         $this->assertIsArray(json_decode($result, true));
     }
 
+    public function testSerializationReplacesCircularArrayReferences(): void
+    {
+        $globalsLike = [];
+        $globalsLike['GLOBALS'] = &$globalsLike;
+        $globalsLike['_marker'] = 'e2e';
+
+        $fixture = new Serializer();
+        $decoded = json_decode($fixture->serializeValue($globalsLike), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame('[circular]', $decoded['GLOBALS']);
+        $this->assertSame('e2e', $decoded['_marker']);
+    }
+
+    public function testSerializationPreservesLongScalarStringsForRoundTripJson(): void
+    {
+        $long = \str_repeat("word spaced text ", 280);
+        $fixture = new Serializer();
+        $decoded = json_decode($fixture->serializeValue(['blob' => $long]), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame($long, $decoded['blob']);
+    }
+
     /**
      * Fills empty array with values:
      *   [1 => [2 => [3 => ....]]]

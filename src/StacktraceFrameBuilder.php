@@ -20,9 +20,10 @@ final class StacktraceFrameBuilder
     public const MAX_FRAME_ARGUMENTS = 20;
 
     /**
-     * Max length of one serialized "name = value" line (bytes; avoids huge JSON in events).
+     * Max UTF-8 byte length for the argument name (left-hand side only).
+     * Serialized values from {@see Serializer::serializeValue()} are not length-capped so JSON stays intact.
      */
-    public const MAX_ARGUMENT_LINE_BYTES = 2048;
+    public const MAX_ARGUMENT_NAME_BYTES = 256;
 
     /**
      * @var Serializer
@@ -276,8 +277,7 @@ final class StacktraceFrameBuilder
             $value = $this->serializer->serializeValue($value);
 
             try {
-                $line = sprintf('%s = %s', $name, $value);
-                $newArguments[] = $this->truncateArgumentLine($line);
+                $newArguments[] = self::formatTruncatedArgumentLine((string) $name, $value);
             } catch (\Exception $e) {
                 // Ignore unknown types
             }
@@ -286,13 +286,61 @@ final class StacktraceFrameBuilder
         return $newArguments;
     }
 
-    private function truncateArgumentLine(string $line): string
+    /**
+     * Build `"name = value"` — only the name may be shortened; serialized value is kept whole (valid JSON, etc.).
+     */
+    public static function formatTruncatedArgumentLine(string $name, string $serializedValue): string
     {
-        if (strlen($line) <= self::MAX_ARGUMENT_LINE_BYTES) {
+        $namePart = self::truncateUtf8StringToMaxBytes($name, self::MAX_ARGUMENT_NAME_BYTES);
+
+        return $namePart . ' = ' . $serializedValue;
+    }
+
+    /**
+     * Normalize one prebuilt `name = serializedValue` line: split at the first `" = "`, cap name only; value unchanged.
+     * Lines without `" = "` are returned as-is (no length limit).
+     */
+    public static function truncatePrebuiltArgumentLine(string $line): string
+    {
+        $separator = ' = ';
+        $position = strpos($line, $separator);
+        if ($position === false) {
             return $line;
         }
 
-        return substr($line, 0, self::MAX_ARGUMENT_LINE_BYTES - 3) . '...';
+        $nameRaw = substr($line, 0, $position);
+        $valueRaw = substr($line, $position + strlen($separator));
+
+        return self::formatTruncatedArgumentLine($nameRaw, $valueRaw);
+    }
+
+    /**
+     * Shorten text to byte length (`...` suffix when clipped); Unicode-safe via {@see mb_strcut} when mbstring exists.
+     */
+    public static function truncateUtf8StringToMaxBytes(string $string, int $maxBytes): string
+    {
+        if ($maxBytes <= 3) {
+            return substr('...', 0, $maxBytes);
+        }
+
+        if (strlen($string) <= $maxBytes) {
+            return $string;
+        }
+
+        $cutLength = $maxBytes - 3;
+        if (function_exists('mb_strcut')) {
+            return mb_strcut($string, 0, $cutLength, 'UTF-8') . '...';
+        }
+
+        return substr($string, 0, $cutLength) . '...';
+    }
+
+    /**
+     * @deprecated Use {@see truncateUtf8StringToMaxBytes} or {@see formatTruncatedArgumentLine}
+     */
+    public static function truncateArgumentLineBytes(string $line, int $maxBytes): string
+    {
+        return self::truncateUtf8StringToMaxBytes($line, $maxBytes);
     }
 
     /**

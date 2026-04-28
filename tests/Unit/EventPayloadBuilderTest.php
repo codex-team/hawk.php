@@ -63,10 +63,10 @@ class EventPayloadBuilderTest extends TestCase
         $this->assertCount($max, $stack[0]['arguments']);
     }
 
-    public function testNormalizeBacktraceTruncatesPrebuiltArgumentLines(): void
+    public function testNormalizeBacktracePreservesPrebuiltArgumentLineWithoutDelimiter(): void
     {
         [$builder, $normalize] = $this->builderWithNormalizeBacktrace();
-        $long = str_repeat('Z', StacktraceFrameBuilder::MAX_ARGUMENT_LINE_BYTES + 100);
+        $long = str_repeat('Z', 50_000);
 
         $frame = [
             'file'      => '/x.php',
@@ -78,8 +78,32 @@ class EventPayloadBuilderTest extends TestCase
         $stack = $normalize->invoke($builder, [$frame]);
         $line  = $stack[0]['arguments'][0] ?? '';
 
-        $this->assertLessThanOrEqual(StacktraceFrameBuilder::MAX_ARGUMENT_LINE_BYTES, strlen($line));
-        $this->assertStringEndsWith('...', $line);
+        $this->assertSame($long, $line);
+    }
+
+    public function testNormalizeBacktraceTruncatesPrebuiltNameOnlyValuePreserved(): void
+    {
+        [$builder, $normalize] = $this->builderWithNormalizeBacktrace();
+        $longName = str_repeat('K', StacktraceFrameBuilder::MAX_ARGUMENT_NAME_BYTES + 50);
+        $longValue = str_repeat('V', 12_345);
+        $prebuiltLine = $longName . ' = ' . $longValue;
+
+        $frame = [
+            'file'      => '/x.php',
+            'line'      => 1,
+            'function'  => 'f',
+            'arguments' => [$prebuiltLine],
+        ];
+
+        $stack = $normalize->invoke($builder, [$frame]);
+        $line  = $stack[0]['arguments'][0] ?? '';
+        $parts = explode(' = ', $line, 2);
+        $this->assertCount(2, $parts);
+        [$namePart, $valuePart] = $parts;
+
+        $this->assertLessThanOrEqual(StacktraceFrameBuilder::MAX_ARGUMENT_NAME_BYTES, strlen($namePart));
+        $this->assertStringEndsWith('...', $namePart);
+        $this->assertSame($longValue, $valuePart);
     }
 
     public function testNormalizeBacktraceFinishesWithGlobalsLikeNestingInAdditionalData(): void
