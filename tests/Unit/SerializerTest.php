@@ -74,7 +74,7 @@ class SerializerTest extends TestCase
 
     public function testSerializationPreservesLongScalarStringsForRoundTripJson(): void
     {
-        $long = \str_repeat("word spaced text ", 280);
+        $long = \str_repeat('word spaced text ', 280);
         $fixture = new Serializer();
         $decoded = json_decode($fixture->serializeValue(['blob' => $long]), true, 512, JSON_THROW_ON_ERROR);
 
