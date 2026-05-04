@@ -274,13 +274,8 @@ final class StacktraceFrameBuilder
          */
         $newArguments = [];
         foreach ($arguments as $name => $value) {
-            $value = $this->serializer->serializeValue($value);
-
-            try {
-                $newArguments[] = self::formatTruncatedArgumentLine((string) $name, $value);
-            } catch (\Exception $e) {
-                // Ignore unknown types
-            }
+            $serialized = $this->serializer->serializeValue($value);
+            $newArguments[] = self::formatTruncatedArgumentLine((string) $name, $serialized);
         }
 
         return $newArguments;

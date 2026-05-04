@@ -132,6 +132,28 @@ class EventPayloadBuilderTest extends TestCase
         $this->assertIsArray($stack[0]['additionalData']['custom'] ?? null);
     }
 
+    public function testNormalizeBacktraceMarksCircularArraysInAdditionalData(): void
+    {
+        [$builder, $normalize] = $this->builderWithNormalizeBacktrace();
+
+        $globalsLike = ['marker' => true];
+        $globalsLike['GLOBALS'] = &$globalsLike;
+
+        $frame = [
+            'file'     => '/x.php',
+            'line'     => 1,
+            'function' => 'x',
+            'args'     => [],
+            'custom'   => $globalsLike,
+        ];
+
+        $stack = $normalize->invoke($builder, [$frame]);
+        $custom = $stack[0]['additionalData']['custom'] ?? null;
+        $this->assertIsArray($custom);
+        $this->assertTrue($custom['marker']);
+        $this->assertSame('[circular]', $custom['GLOBALS']);
+    }
+
     public function testCreationWithDefaultException(): void
     {
         $context = [

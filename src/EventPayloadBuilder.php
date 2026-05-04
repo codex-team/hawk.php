@@ -41,7 +41,8 @@ class EventPayloadBuilder
     ];
 
     /**
-     * {@see transformForJson} max nesting — protects against $GLOBALS self-reference and similar cycles.
+     * {@see transformForJsonRecursive} max nesting — stops runaway recursion; combined with array reference
+     * stack for the same circular detection as {@see Serializer::prepare()}.
      */
     private const TRANSFORM_JSON_MAX_DEPTH = 32;
 
@@ -177,7 +178,7 @@ class EventPayloadBuilder
                         $value = is_object($value) ? get_class($value) : $value;
                     }
 
-                    $additional[$key] = $this->transformForJson($value, 0);
+                    $additional[$key] = $this->transformForJson($value);
                 }
             }
 
@@ -267,24 +268,43 @@ class EventPayloadBuilder
     }
 
     /**
-     * Transform values to JSON-serializable representation
+     * Transform frame extra fields for JSON — scalars, shallow objects, arrays with depth/cycle limits.
      *
      * @param mixed $value
-     * @param int   $depth
      *
      * @return mixed
      */
-    private function transformForJson($value, int $depth = 0)
+    private function transformForJson($value)
+    {
+        $stack = [];
+
+        return $this->transformForJsonRecursive($value, 0, $stack);
+    }
+
+    /**
+     * @param mixed $value
+     *
+     * @return mixed
+     */
+    private function transformForJsonRecursive($value, int $depth, array &$stack)
     {
         if ($depth > self::TRANSFORM_JSON_MAX_DEPTH) {
             return '[max depth]';
         }
 
         if (is_array($value)) {
+            foreach ($stack as $ancestor) {
+                if ($value === $ancestor) {
+                    return '[circular]';
+                }
+            }
+
+            $stack[] = $value;
             $result = [];
             foreach ($value as $k => $v) {
-                $result[$k] = $this->transformForJson($v, $depth + 1);
+                $result[$k] = $this->transformForJsonRecursive($v, $depth + 1, $stack);
             }
+            array_pop($stack);
 
             return $result;
         }
