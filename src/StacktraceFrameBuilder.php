@@ -310,7 +310,30 @@ final class StacktraceFrameBuilder
     }
 
     /**
-     * Shorten text to byte length (`...` suffix when clipped); Unicode-safe via {@see mb_strcut} when mbstring exists.
+     * Longest prefix of $string whose byte length is at most $maxBytes and whose encoding is valid UTF-8.
+     * Used when {@see mb_strcut} is unavailable so {@see substr} never leaves a split codepoint (invalid JSON).
+     */
+    private static function utf8SafePrefixMaxBytes(string $string, int $maxBytes): string
+    {
+        if ($maxBytes <= 0) {
+            return '';
+        }
+
+        if (strlen($string) <= $maxBytes) {
+            return $string;
+        }
+
+        $s = substr($string, 0, $maxBytes);
+        while ($s !== '' && preg_match('//u', $s) !== 1) {
+            $s = substr($s, 0, -1);
+        }
+
+        return $s;
+    }
+
+    /**
+     * Shorten text to byte length (`...` suffix when clipped). Unicode-safe: {@see mb_strcut} when available,
+     * otherwise {@see utf8SafePrefixMaxBytes} (valid UTF-8 prefix, no split codepoints).
      */
     public static function truncateUtf8StringToMaxBytes(string $string, int $maxBytes): string
     {
@@ -327,7 +350,7 @@ final class StacktraceFrameBuilder
             return mb_strcut($string, 0, $cutLength, 'UTF-8') . '...';
         }
 
-        return substr($string, 0, $cutLength) . '...';
+        return self::utf8SafePrefixMaxBytes($string, $cutLength) . '...';
     }
 
     /**
