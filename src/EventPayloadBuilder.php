@@ -41,6 +41,12 @@ class EventPayloadBuilder
     ];
 
     /**
+     * {@see transformForJsonRecursive} max nesting — stops runaway recursion; combined with array reference
+     * stack for the same circular detection as {@see Serializer::prepare()}.
+     */
+    private const TRANSFORM_JSON_MAX_DEPTH = 32;
+
+    /**
      * EventPayloadFactory constructor.
      */
     public function __construct(StacktraceFrameBuilder $stacktraceFrameBuilder)
@@ -158,9 +164,15 @@ class EventPayloadBuilder
                 $functionName = (string) $frame['functionName'];
             }
 
+            $arguments = $this->buildArgumentsList($frame);
+
             $additional = [];
             foreach ($frame as $key => $value) {
                 if (!in_array($key, self::ALLOWED_KEYS, true)) {
+                    // Mapped to `arguments` via StacktraceFrameBuilder / string list; do not dump raw `args` here
+                    if ($key === 'args') {
+                        continue;
+                    }
                     // Drop heavy/unserializable objects from 'object' field; store class name instead
                     if ($key === 'object') {
                         $value = is_object($value) ? get_class($value) : $value;
@@ -176,9 +188,7 @@ class EventPayloadBuilder
                 'column'        => null,
                 'sourceCode'    => isset($frame['sourceCode']) && is_array($frame['sourceCode']) ? $frame['sourceCode'] : null,
                 'function'      => $functionName,
-                // Keep arguments only if it already looks like desired string[]; otherwise omit
-                // Limit argument processing to first 10 items to avoid performance issues
-                'arguments'     => (isset($frame['arguments']) && is_array($frame['arguments'])) ? array_values(array_map('strval', array_slice($frame['arguments'], 0, 10))) : [],
+                'arguments'     => $arguments,
                 'additionalData'=> $additional,
             ]);
         }
@@ -223,7 +233,42 @@ class EventPayloadBuilder
     }
 
     /**
-     * Transform values to JSON-serializable representation
+     * Build Hawk `arguments`: string list like "name = serializedValue" (from raw `args` via Serializer).
+     * Limits the number of lines ({@see StacktraceFrameBuilder::MAX_FRAME_ARGUMENTS}). Serialized values are not
+     * length-truncated; only param names are capped ({@see StacktraceFrameBuilder::formatTruncatedArgumentLine});
+     * prebuilt strings are split on the first `" = "` with {@see StacktraceFrameBuilder::truncatePrebuiltArgumentLine}.
+     *
+     * @param array $frame
+     *
+     * @return array
+     */
+    private function buildArgumentsList(array $frame): array
+    {
+        $max = StacktraceFrameBuilder::MAX_FRAME_ARGUMENTS;
+
+        if (isset($frame['arguments']) && is_array($frame['arguments'])) {
+            $out = [];
+            foreach (array_slice($frame['arguments'], 0, $max) as $line) {
+                $out[] = StacktraceFrameBuilder::truncatePrebuiltArgumentLine((string) $line);
+            }
+
+            return $out;
+        }
+
+        if (!empty($frame['args']) && is_array($frame['args'])) {
+            $out = [];
+            foreach (array_slice($this->stacktraceFrameBuilder->getFormattedArguments($frame), 0, $max) as $line) {
+                $out[] = (string) $line;
+            }
+
+            return $out;
+        }
+
+        return [];
+    }
+
+    /**
+     * Transform frame extra fields for JSON — scalars, shallow objects, arrays with depth/cycle limits.
      *
      * @param mixed $value
      *
@@ -231,11 +276,35 @@ class EventPayloadBuilder
      */
     private function transformForJson($value)
     {
+        $stack = [];
+
+        return $this->transformForJsonRecursive($value, 0, $stack);
+    }
+
+    /**
+     * @param mixed $value
+     *
+     * @return mixed
+     */
+    private function transformForJsonRecursive($value, int $depth, array &$stack)
+    {
+        if ($depth > self::TRANSFORM_JSON_MAX_DEPTH) {
+            return '[max depth]';
+        }
+
         if (is_array($value)) {
+            foreach ($stack as $ancestor) {
+                if ($value === $ancestor) {
+                    return '[circular]';
+                }
+            }
+
+            $stack[] = $value;
             $result = [];
             foreach ($value as $k => $v) {
-                $result[$k] = $this->transformForJson($v);
+                $result[$k] = $this->transformForJsonRecursive($v, $depth + 1, $stack);
             }
+            array_pop($stack);
 
             return $result;
         }

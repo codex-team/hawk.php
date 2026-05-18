@@ -15,6 +15,17 @@ use Throwable;
 final class StacktraceFrameBuilder
 {
     /**
+     * Max function arguments to include per frame (payload size, CPU, Hawk limits).
+     */
+    public const MAX_FRAME_ARGUMENTS = 20;
+
+    /**
+     * Max UTF-8 byte length for the argument name (left-hand side only).
+     * Serialized values from {@see Serializer::serializeValue()} are not length-capped so JSON stays intact.
+     */
+    public const MAX_ARGUMENT_NAME_BYTES = 256;
+
+    /**
      * @var Serializer
      */
     private $serializer;
@@ -184,6 +195,19 @@ final class StacktraceFrameBuilder
     }
 
     /**
+     * Format `args` from a raw debug_backtrace() frame to Hawk `arguments` (list of "name = value" strings).
+     * Public so {@see EventPayloadBuilder} can map `args` without duplicating logic.
+     *
+     * @param array $frame
+     *
+     * @return array
+     */
+    public function getFormattedArguments(array $frame): array
+    {
+        return $this->getArgs($frame);
+    }
+
+    /**
      * Get function arguments for a frame
      *
      * @param array $frame - backtrace frame
@@ -216,6 +240,9 @@ final class StacktraceFrameBuilder
          */
         if (!$reflection) {
             foreach ($frame['args'] as $index => $value) {
+                if ($index >= self::MAX_FRAME_ARGUMENTS) {
+                    break;
+                }
                 $arguments['arg' . $index] = $value;
             }
         } else {
@@ -231,6 +258,10 @@ final class StacktraceFrameBuilder
                 $paramName = $reflectionParam->getName();
                 $paramPosition = $reflectionParam->getPosition();
 
+                if ($paramPosition >= self::MAX_FRAME_ARGUMENTS) {
+                    break;
+                }
+
                 if (isset($frame['args'][$paramPosition])) {
                     $arguments[$paramName] = $frame['args'][$paramPosition];
                 }
@@ -243,18 +274,91 @@ final class StacktraceFrameBuilder
          */
         $newArguments = [];
         foreach ($arguments as $name => $value) {
-            $value = $this->serializer->serializeValue($value);
-
-            try {
-                $newArguments[] = sprintf('%s = %s', $name, $value);
-            } catch (\Exception $e) {
-                // Ignore unknown types
-            }
+            $serialized = $this->serializer->serializeValue($value);
+            $newArguments[] = self::formatTruncatedArgumentLine((string) $name, $serialized);
         }
 
-        $arguments = $newArguments;
+        return $newArguments;
+    }
 
-        return $arguments;
+    /**
+     * Build `"name = value"` — only the name may be shortened; serialized value is kept whole (valid JSON, etc.).
+     */
+    public static function formatTruncatedArgumentLine(string $name, string $serializedValue): string
+    {
+        $namePart = self::truncateUtf8StringToMaxBytes($name, self::MAX_ARGUMENT_NAME_BYTES);
+
+        return $namePart . ' = ' . $serializedValue;
+    }
+
+    /**
+     * Normalize one prebuilt `name = serializedValue` line: split at the first `" = "`, cap name only; value unchanged.
+     * Lines without `" = "` are returned as-is (no length limit).
+     */
+    public static function truncatePrebuiltArgumentLine(string $line): string
+    {
+        $separator = ' = ';
+        $position = strpos($line, $separator);
+        if ($position === false) {
+            return $line;
+        }
+
+        $nameRaw = substr($line, 0, $position);
+        $valueRaw = substr($line, $position + strlen($separator));
+
+        return self::formatTruncatedArgumentLine($nameRaw, $valueRaw);
+    }
+
+    /**
+     * Longest prefix of $string whose byte length is at most $maxBytes and whose encoding is valid UTF-8.
+     * Used when {@see mb_strcut} is unavailable so {@see substr} never leaves a split codepoint (invalid JSON).
+     */
+    private static function utf8SafePrefixMaxBytes(string $string, int $maxBytes): string
+    {
+        if ($maxBytes <= 0) {
+            return '';
+        }
+
+        if (strlen($string) <= $maxBytes) {
+            return $string;
+        }
+
+        $s = substr($string, 0, $maxBytes);
+        while ($s !== '' && preg_match('//u', $s) !== 1) {
+            $s = substr($s, 0, -1);
+        }
+
+        return $s;
+    }
+
+    /**
+     * Shorten text to byte length (`...` suffix when clipped). Unicode-safe: {@see mb_strcut} when available,
+     * otherwise {@see utf8SafePrefixMaxBytes} (valid UTF-8 prefix, no split codepoints).
+     */
+    public static function truncateUtf8StringToMaxBytes(string $string, int $maxBytes): string
+    {
+        if ($maxBytes <= 3) {
+            return substr('...', 0, $maxBytes);
+        }
+
+        if (strlen($string) <= $maxBytes) {
+            return $string;
+        }
+
+        $cutLength = $maxBytes - 3;
+        if (function_exists('mb_strcut')) {
+            return mb_strcut($string, 0, $cutLength, 'UTF-8') . '...';
+        }
+
+        return self::utf8SafePrefixMaxBytes($string, $cutLength) . '...';
+    }
+
+    /**
+     * @deprecated Use {@see truncateUtf8StringToMaxBytes} or {@see formatTruncatedArgumentLine}
+     */
+    public static function truncateArgumentLineBytes(string $line, int $maxBytes): string
+    {
+        return self::truncateUtf8StringToMaxBytes($line, $maxBytes);
     }
 
     /**

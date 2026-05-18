@@ -20,7 +20,9 @@ final class Serializer
      */
     public function serializeValue($value): string
     {
-        $encoded = json_encode($this->prepare($value), JSON_UNESCAPED_UNICODE);
+        $flags = JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT;
+        $stack = [];
+        $encoded = json_encode($this->prepare($value, 0, $stack), $flags);
 
         if ($encoded === false) {
             return '';
@@ -30,28 +32,52 @@ final class Serializer
     }
 
     /**
+     * Max nesting depth to avoid runaway recursion on $GLOBALS and similar circular structures.
+     */
+    private const PREPARE_MAX_DEPTH = 32;
+
+    /**
      * Prepares value for encoding
      *
-     * @param $value
+     * @param mixed $value
+     * @param int   $depth
+     * @param array $stack reference path (arrays only) to detect $GLOBALS-style cycles
      *
      * @return array|mixed|string
      */
-    private function prepare($value)
+    private function prepare($value, int $depth, array &$stack)
     {
+        if ($depth > self::PREPARE_MAX_DEPTH) {
+            return '[max depth]';
+        }
+
         if (!is_object($value) && (is_array($value) || is_iterable($value))) {
+            if (is_array($value)) {
+                foreach ($stack as $ancestor) {
+                    if ($value === $ancestor) {
+                        return '[circular]';
+                    }
+                }
+                $stack[] = $value;
+            }
+
             $result = [];
             foreach ($value as $key => $subValue) {
                 if (is_array($subValue) || is_iterable($subValue)) {
-                    $result[$key] = $this->prepare($subValue);
+                    $result[$key] = $this->prepare($subValue, $depth + 1, $stack);
                 } else {
                     $result[$key] = $this->transform($subValue);
                 }
             }
 
+            if (is_array($value)) {
+                array_pop($stack);
+            }
+
             return $result;
-        } else {
-            return $this->transform($value);
         }
+
+        return $this->transform($value);
     }
 
     /**
