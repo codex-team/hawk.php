@@ -24,6 +24,52 @@ $ composer require codex-team/hawk.php
 ]);
 ```
 
+The default transport requires the `ext-curl` PHP extension.
+If `ext-curl` is unavailable, provide a custom transport via the `transport` option.
+
+You can also provide your own transport by implementing `TransportInterface`.
+Custom transports own their endpoint and timeout configuration, so the `url` and `timeout` options are used only by the default transport.
+
+For example, install a PHP-version-compatible Guzzle release in your application and wrap it with a custom transport:
+
+```php
+use Hawk\Event;
+use Hawk\Options;
+use Hawk\Transport\TransportInterface;
+
+class GuzzleTransport implements TransportInterface
+{
+    private $url;
+    private $client;
+
+    public function __construct(string $url = Options::DEFAULT_URL)
+    {
+        $this->url = $url;
+        $this->client = new \GuzzleHttp\Client();
+    }
+
+    public function getUrl(): string
+    {
+        return $this->url;
+    }
+
+    public function send(Event $event)
+    {
+        $this->client->request('POST', $this->url, [
+            'headers' => [
+                'Content-Type' => 'application/json',
+            ],
+            'body' => json_encode($event, JSON_UNESCAPED_UNICODE),
+        ]);
+    }
+}
+
+\Hawk\Catcher::init([
+    'integrationToken' => 'your integration token',
+    'transport' => new GuzzleTransport(),
+]);
+```
+
 After initialization you can set `user` or `context` for any event that will be send to Hawk
 
 ```php

@@ -16,7 +16,7 @@ class OptionsTest extends TestCase
         $this->assertNull($options->getBeforeSend());
         $this->assertEmpty($options->getIntegrationToken());
         $this->assertEmpty($options->getRelease());
-        $this->assertEquals('https://k1.hawk.so/', $options->getUrl());
+        $this->assertEquals(Options::DEFAULT_URL, $options->getUrl());
         $this->assertEquals(error_reporting(), $options->getErrorTypes());
     }
 
