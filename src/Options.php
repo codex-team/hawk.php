@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace Hawk;
 
+use Hawk\Transport\TransportInterface;
+
 /**
  * Class Options is responsible for configuring the Hawk catcher.
  */
 class Options
 {
+    public const DEFAULT_URL = 'https://k1.hawk.so/';
+
     /**
      * @var string
      */
@@ -17,7 +21,7 @@ class Options
     /**
      * @var string
      */
-    private $url = 'https://k1.hawk.so/';
+    private $url = self::DEFAULT_URL;
 
     /**
      * @var string
@@ -45,6 +49,11 @@ class Options
     private $timeout = 2;
 
     /**
+     * @var TransportInterface|null
+     */
+    private $transport = null;
+
+    /**
      * Map of accepted option keys to class properties.
      */
     private const OPTION_KEYS = [
@@ -59,6 +68,7 @@ class Options
         'beforeSend' => 'beforeSend',
         'before_send' => 'beforeSend',
         'timeout' => 'timeout',
+        'transport' => 'transport',
     ];
 
     /**
@@ -130,6 +140,14 @@ class Options
 
                 break;
 
+            case 'transport':
+                if (!$value instanceof TransportInterface && $value !== null) {
+                    throw new \InvalidArgumentException("Option 'transport' must implement TransportInterface or be null.");
+                }
+                $this->transport = $value;
+
+                break;
+
             default:
                 throw new \InvalidArgumentException("Unknown option '$key'.");
         }
@@ -168,5 +186,10 @@ class Options
     public function getTimeout(): int
     {
         return $this->timeout;
+    }
+
+    public function getTransport(): ?TransportInterface
+    {
+        return $this->transport;
     }
 }

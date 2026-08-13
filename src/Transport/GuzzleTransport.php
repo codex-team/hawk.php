@@ -9,6 +9,8 @@ use Hawk\Event;
 /**
  * Class GuzzleTransport
  *
+ * @deprecated Use a custom TransportInterface implementation instead.
+ *
  * @package Hawk\Transport
  */
 class GuzzleTransport implements TransportInterface
@@ -31,8 +33,8 @@ class GuzzleTransport implements TransportInterface
     /**
      * @inheritDoc
      */
-    public function send(Event $event): void
+    public function send(Event $event)
     {
-        // TODO: Implement send() method.
+        throw new \BadMethodCallException('GuzzleTransport is not implemented. Please provide your own TransportInterface implementation.');
     }
 }
