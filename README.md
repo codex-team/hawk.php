@@ -24,6 +24,8 @@ $ composer require codex-team/hawk.php
 ]);
 ```
 
+#### Passing custom Transport
+
 The default transport requires the `ext-curl` PHP extension.
 If `ext-curl` is unavailable, provide a custom transport via the `transport` option.
 
@@ -69,6 +71,8 @@ class GuzzleTransport implements TransportInterface
     'transport' => new GuzzleTransport(),
 ]);
 ```
+
+#### Passing User and Context
 
 After initialization you can set `user` or `context` for any event that will be send to Hawk
 
