@@ -33,7 +33,7 @@ class GuzzleTransport implements TransportInterface
     /**
      * @inheritDoc
      */
-    public function send(Event $event): void
+    public function send(Event $event)
     {
         throw new \BadMethodCallException('GuzzleTransport is not implemented. Please provide your own TransportInterface implementation.');
     }

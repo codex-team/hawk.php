@@ -39,7 +39,7 @@ use Hawk\Event;
 use Hawk\Options;
 use Hawk\Transport\TransportInterface;
 
-class GuzzleTransport implements TransportInterface
+class CustomGuzzleTransport implements TransportInterface
 {
     private $url;
     private $client;
@@ -68,7 +68,7 @@ class GuzzleTransport implements TransportInterface
 
 \Hawk\Catcher::init([
     'integrationToken' => 'your integration token',
-    'transport' => new GuzzleTransport(),
+    'transport' => new CustomGuzzleTransport(),
 ]);
 ```
 
