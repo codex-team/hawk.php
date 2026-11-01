@@ -51,6 +51,7 @@ class Handler
     private $isExceptionHandlerRegistered = false;
     private $isFatalHandlerRegistered = false;
     private $disableFatalErrorHandler = false;
+    private $isCapturing = false;
 
     /**
      * Previous handlers to restore later if needed.
@@ -71,7 +72,7 @@ class Handler
         \E_USER_DEPRECATED => 'User Deprecated',
         \E_NOTICE => 'Notice',
         \E_USER_NOTICE => 'User Notice',
-        \E_STRICT => 'Runtime Notice',
+        2048 => 'Runtime Notice', // E_STRICT is deprecated in PHP 8.4.
         \E_WARNING => 'Warning',
         \E_USER_WARNING => 'User Warning',
         \E_COMPILE_WARNING => 'Compile Warning',
@@ -145,7 +146,7 @@ class Handler
             return $this;
         }
 
-        $exceptionHandlerCallback = \Closure::fromCallable([$this, 'handleException']);
+        $exceptionHandlerCallback = \Closure::fromCallable([$this, 'handleUncaughtException']);
 
         $this->previousExceptionHandler = set_exception_handler($exceptionHandlerCallback);
         $this->isExceptionHandlerRegistered = true;
@@ -184,24 +185,28 @@ class Handler
             }
         }
 
-        if ($isSilencedError) {
-            $exception = new SilencedErrorException(self::ERROR_LEVEL_DESCRIPTIONS[$level] . ': ' . $message, 0, $level, $file, $line);
-        } else {
-            $exception = new \ErrorException(self::ERROR_LEVEL_DESCRIPTIONS[$level] . ': ' . $message, 0, $level, $file, $line);
-        }
+        if ($this->shouldHandleError($level, $isSilencedError)) {
+            $this->captureSafely(function () use ($level, $message, $file, $line, $isSilencedError): void {
+                if ($isSilencedError) {
+                    $exception = new SilencedErrorException(self::ERROR_LEVEL_DESCRIPTIONS[$level] . ': ' . $message, 0, $level, $file, $line);
+                } else {
+                    $exception = new \ErrorException(self::ERROR_LEVEL_DESCRIPTIONS[$level] . ': ' . $message, 0, $level, $file, $line);
+                }
 
-        $data = [
-            'exception' => $exception,
-            'context' => $this->context,
-            'user' => $this->user,
-            'type' => $exception->getSeverity()
-        ];
+                $data = [
+                    'exception' => $exception,
+                    'context' => $this->context,
+                    'user' => $this->user,
+                    'type' => $exception->getSeverity()
+                ];
 
-        $eventPayload = $this->eventPayloadBuilder->create($data);
-        $event = $this->buildEvent($eventPayload);
+                $eventPayload = $this->eventPayloadBuilder->create($data);
+                $event = $this->buildEvent($eventPayload);
 
-        if ($event !== null && $this->shouldHandleError($level, $isSilencedError)) {
-            $this->send($event);
+                if ($event !== null) {
+                    $this->send($event);
+                }
+            });
         }
 
         if (null !== $this->previousErrorHandler) {
@@ -216,20 +221,26 @@ class Handler
      *
      * @throws \Throwable
      */
-    public function handleException(\Throwable $exception, array $context = []): void
+    public function handleException(\Throwable $exception, array $context = [], bool $uncaught = false): void
     {
-        $data = [
-            'exception' => $exception,
-            'context' => array_merge($this->context, $context),
-            'user' => $this->user
-        ];
-
-        $eventPayload = $this->eventPayloadBuilder->create($data);
-        $event = $this->buildEvent($eventPayload);
-
-        if ($event !== null) {
-            $this->send($event);
+        if ($this->isCapturing) {
+            return;
         }
+
+        $this->captureSafely(function () use ($exception, $context): void {
+            $data = [
+                'exception' => $exception,
+                'context' => array_merge($this->context, $context),
+                'user' => $this->user
+            ];
+
+            $eventPayload = $this->eventPayloadBuilder->create($data);
+            $event = $this->buildEvent($eventPayload);
+
+            if ($event !== null) {
+                $this->send($event);
+            }
+        });
 
         $previousExceptionHandlerException = $exception;
 
@@ -252,12 +263,14 @@ class Handler
         // native PHP handler to avoid an infinite loop.
         if ($exception === $previousExceptionHandlerException) {
             // Disable the fatal error handler to prevent the error from being reported twice.
-            $this->disableFatalErrorHandler = true;
+            if ($uncaught) {
+                $this->disableFatalErrorHandler = true;
+            }
 
             throw $exception;
         }
 
-        $this->handleException($previousExceptionHandlerException);
+        $this->handleException($previousExceptionHandlerException, [], $uncaught);
     }
 
     /**
@@ -273,29 +286,34 @@ class Handler
 
         if (
             $error === null
-            || is_array($error) && $error['type'] && (\E_ERROR | \E_PARSE | \E_CORE_ERROR | \E_CORE_WARNING | \E_COMPILE_ERROR | \E_COMPILE_WARNING)
+            || 0 === ($error['type'] & (\E_ERROR | \E_PARSE | \E_CORE_ERROR | \E_CORE_WARNING | \E_COMPILE_ERROR | \E_COMPILE_WARNING))
         ) {
             return;
         }
 
-        $payload = [
-            'exception' => new \ErrorException(
-                $error['message'],
-                0,
-                $error['type'],
-                $error['file'],
-                $error['line']
-            ),
-            'context' => $this->context,
-            'user' => $this->user
-        ];
+        // A fatal error can stop the active capture before its finally block runs.
+        $this->isCapturing = false;
 
-        $eventPayload = $this->eventPayloadBuilder->create($payload);
-        $event = $this->buildEvent($eventPayload);
+        $this->captureSafely(function () use ($error): void {
+            $payload = [
+                'exception' => new \ErrorException(
+                    $error['message'],
+                    0,
+                    $error['type'],
+                    $error['file'],
+                    $error['line']
+                ),
+                'context' => $this->context,
+                'user' => $this->user
+            ];
 
-        if ($event !== null) {
-            $this->send($event);
-        }
+            $eventPayload = $this->eventPayloadBuilder->create($payload);
+            $event = $this->buildEvent($eventPayload);
+
+            if ($event !== null) {
+                $this->send($event);
+            }
+        });
     }
 
     /**
@@ -303,14 +321,24 @@ class Handler
      */
     public function sendEvent(array $payload): void
     {
-        $payload['context'] = array_merge($this->context, $payload['context'] ?? []);
-        $payload['user'] = $this->user;
+        if ($this->isCapturing) {
+            return;
+        }
 
-        $eventPayload = $this->eventPayloadBuilder->create($payload);
-        $event = $this->buildEvent($eventPayload);
+        $this->isCapturing = true;
 
-        if ($event !== null) {
-            $this->send($event);
+        try {
+            $payload['context'] = array_merge($this->context, $payload['context'] ?? []);
+            $payload['user'] = $this->user;
+
+            $eventPayload = $this->eventPayloadBuilder->create($payload);
+            $event = $this->buildEvent($eventPayload);
+
+            if ($event !== null) {
+                $this->send($event);
+            }
+        } finally {
+            $this->isCapturing = false;
         }
     }
 
@@ -352,6 +380,35 @@ class Handler
      */
     private function send(Event $event): void
     {
-        $this->transport->send($event);
+        try {
+            $this->transport->send($event);
+        } catch (\Throwable $exception) {
+            // Transport failures must not interrupt the application.
+        }
+    }
+
+    /**
+     * Reporting must not interrupt the application or report its own failures.
+     */
+    private function captureSafely(callable $capture): void
+    {
+        if ($this->isCapturing) {
+            return;
+        }
+
+        $this->isCapturing = true;
+
+        try {
+            $capture();
+        } catch (\Throwable $exception) {
+            // A failed report must not replace the original application error.
+        } finally {
+            $this->isCapturing = false;
+        }
+    }
+
+    private function handleUncaughtException(\Throwable $exception): void
+    {
+        $this->handleException($exception, [], true);
     }
 }
