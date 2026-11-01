@@ -146,7 +146,7 @@ class Handler
             return $this;
         }
 
-        $exceptionHandlerCallback = \Closure::fromCallable([$this, 'handleException']);
+        $exceptionHandlerCallback = \Closure::fromCallable([$this, 'handleUncaughtException']);
 
         $this->previousExceptionHandler = set_exception_handler($exceptionHandlerCallback);
         $this->isExceptionHandlerRegistered = true;
@@ -221,8 +221,12 @@ class Handler
      *
      * @throws \Throwable
      */
-    public function handleException(\Throwable $exception, array $context = []): void
+    public function handleException(\Throwable $exception, array $context = [], bool $uncaught = false): void
     {
+        if ($this->isCapturing) {
+            return;
+        }
+
         $this->captureSafely(function () use ($exception, $context): void {
             $data = [
                 'exception' => $exception,
@@ -259,12 +263,14 @@ class Handler
         // native PHP handler to avoid an infinite loop.
         if ($exception === $previousExceptionHandlerException) {
             // Disable the fatal error handler to prevent the error from being reported twice.
-            $this->disableFatalErrorHandler = true;
+            if ($uncaught) {
+                $this->disableFatalErrorHandler = true;
+            }
 
             throw $exception;
         }
 
-        $this->handleException($previousExceptionHandlerException);
+        $this->handleException($previousExceptionHandlerException, [], $uncaught);
     }
 
     /**
@@ -284,6 +290,9 @@ class Handler
         ) {
             return;
         }
+
+        // A fatal error can stop the active capture before its finally block runs.
+        $this->isCapturing = false;
 
         $this->captureSafely(function () use ($error): void {
             $payload = [
@@ -396,5 +405,10 @@ class Handler
         } finally {
             $this->isCapturing = false;
         }
+    }
+
+    private function handleUncaughtException(\Throwable $exception): void
+    {
+        $this->handleException($exception, [], true);
     }
 }

@@ -32,6 +32,22 @@ class FatalHandlerTest extends TestCase
         $this->assertSame(1, substr_count($output, "HAWK_EVENT\n"));
     }
 
+    public function testManualExceptionDoesNotHideLaterFatalError(): void
+    {
+        list($exitCode, $output) = $this->runFixture('manual-then-fatal');
+
+        $this->assertNotSame(0, $exitCode);
+        $this->assertSame(2, substr_count($output, "HAWK_EVENT\n"));
+    }
+
+    public function testFatalErrorDuringCaptureIsReported(): void
+    {
+        list($exitCode, $output) = $this->runFixture('fatal-during-capture');
+
+        $this->assertNotSame(0, $exitCode);
+        $this->assertSame(1, substr_count($output, "HAWK_EVENT\n"));
+    }
+
     private function runFixture(string $scenario): array
     {
         if (!function_exists('proc_open')) {

@@ -173,6 +173,60 @@ class HandlerFailureTest extends TestCase
         $this->assertSame(1, $beforeSendCalls);
     }
 
+    public function testBeforeSendCannotRecursivelyCaptureException(): void
+    {
+        $transport = $this->createMock(TransportInterface::class);
+        $transport->expects($this->once())->method('send');
+
+        $handler = null;
+        $handler = $this->createHandler($transport, [
+            'beforeSend' => function ($event) use (&$handler) {
+                $handler->handleException(new \RuntimeException('Nested exception'));
+
+                return $event;
+            }
+        ]);
+
+        $handler->sendEvent(['title' => 'outer']);
+    }
+
+    public function testNestedExceptionPreservesPreviousExceptionHandler(): void
+    {
+        $transport = $this->createMock(TransportInterface::class);
+        $transport->expects($this->exactly(2))->method('send');
+
+        $handler = null;
+        $handler = $this->createHandler($transport, [
+            'beforeSend' => function ($event) use (&$handler) {
+                $handler->handleException(new \RuntimeException('Nested exception'));
+
+                return $event;
+            }
+        ]);
+
+        $previousHandled = [];
+        $registered = false;
+        set_exception_handler(function (\Throwable $exception) use (&$previousHandled): void {
+            $previousHandled[] = $exception;
+        });
+
+        try {
+            $handler->registerExceptionHandler();
+            $registered = true;
+            $handler->sendEvent(['title' => 'outer']);
+            $this->assertSame([], $previousHandled);
+
+            $later = new \RuntimeException('Later exception');
+            $handler->handleException($later);
+            $this->assertSame([$later], $previousHandled);
+        } finally {
+            if ($registered) {
+                restore_exception_handler();
+            }
+            restore_exception_handler();
+        }
+    }
+
     public function testBeforeSendFailureFromManualCaptureIsNotHidden(): void
     {
         $transport = $this->createMock(TransportInterface::class);

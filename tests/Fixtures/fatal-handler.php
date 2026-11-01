@@ -24,12 +24,39 @@ $transport = new class implements TransportInterface {
     }
 };
 
+$options = ['integrationToken' => 'test-token'];
+if ($argv[1] === 'fatal-during-capture') {
+    $options['beforeSend'] = function ($event) {
+        static $triggerFatal = true;
+
+        if ($triggerFatal) {
+            $triggerFatal = false;
+            eval('function hawk_duplicate_probe() {} function hawk_duplicate_probe() {}');
+        }
+
+        return $event;
+    };
+}
+
 $handler = new Handler(
-    new Options(['integrationToken' => 'test-token']),
+    new Options($options),
     $transport,
     new EventPayloadBuilder(new StacktraceFrameBuilder(new Serializer()))
 );
 $handler->registerFatalHandler();
+
+if ($argv[1] === 'manual-then-fatal') {
+    $handler->registerErrorHandler();
+    $handler->registerExceptionHandler();
+
+    try {
+        $handler->handleException(new RuntimeException('Manually reported exception'));
+    } catch (RuntimeException $exception) {
+        // Continue to the fatal error after the application handles the exception.
+    }
+
+    eval('function hawk_duplicate_probe() {} function hawk_duplicate_probe() {}');
+}
 
 if ($argv[1] === 'exception') {
     $handler->registerExceptionHandler();
@@ -41,6 +68,10 @@ if ($argv[1] === 'fatal') {
     $handler->registerErrorHandler();
     $handler->registerExceptionHandler();
     eval('function hawk_duplicate_probe() {} function hawk_duplicate_probe() {}');
+}
+
+if ($argv[1] === 'fatal-during-capture') {
+    $handler->sendEvent(['title' => 'Before fatal']);
 }
 
 trigger_error('Non-fatal warning', E_USER_WARNING);
