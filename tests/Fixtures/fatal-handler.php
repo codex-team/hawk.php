@@ -33,6 +33,7 @@ $handler->registerFatalHandler();
 
 if ($argv[1] === 'exception') {
     $handler->registerExceptionHandler();
+
     throw new RuntimeException('Unhandled application exception');
 }
 
