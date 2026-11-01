@@ -3,7 +3,6 @@
     "description": "PHP errors Catcher module for Hawk.so",
     "keywords": ["hawk", "php", "error", "catcher"],
     "type": "library",
-    "version": "2.3.0",
     "license": "MIT",
     "require": {
         "ext-json": "*",
