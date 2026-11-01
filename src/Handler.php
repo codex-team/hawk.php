@@ -280,7 +280,7 @@ class Handler
 
         if (
             $error === null
-            || is_array($error) && $error['type'] && (\E_ERROR | \E_PARSE | \E_CORE_ERROR | \E_CORE_WARNING | \E_COMPILE_ERROR | \E_COMPILE_WARNING)
+            || 0 === ($error['type'] & (\E_ERROR | \E_PARSE | \E_CORE_ERROR | \E_CORE_WARNING | \E_COMPILE_ERROR | \E_COMPILE_WARNING))
         ) {
             return;
         }
